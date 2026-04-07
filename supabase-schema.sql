@@ -21,8 +21,23 @@ create table if not exists profiles (
   meals_prepped integer default 0,
   last_visit timestamptz,
   created_at timestamptz default now(),
-  updated_at timestamptz default now()
+  updated_at timestamptz default now(),
+  -- theme
+  palette text default 'sunny',
+  -- diet / level up
+  diet_plan text,
+  -- pet system
+  pet_type text default 'cat',
+  pet_health integer default 80,
+  pet_period text default 'daily'
 );
+
+-- Run these if you already created the table without the new columns:
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS palette text DEFAULT 'sunny';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS diet_plan text;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_type text DEFAULT 'cat';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_health integer DEFAULT 80;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_period text DEFAULT 'daily';
 
 -- ============================================
 -- INGREDIENTS TABLE
@@ -136,6 +151,21 @@ create policy "Users can manage own debts" on debts for all using (auth.uid() = 
 
 -- Goals policies
 create policy "Users can manage own goals" on goals for all using (auth.uid() = user_id);
+
+-- ============================================
+-- ACTIVITIES TABLE (daily time log)
+-- ============================================
+create table if not exists activities (
+  id uuid default uuid_generate_v4() primary key,
+  user_id uuid references auth.users on delete cascade not null,
+  name text not null,
+  hours numeric not null,
+  log_date date default current_date,
+  created_at timestamptz default now()
+);
+
+alter table activities enable row level security;
+create policy "Users can manage own activities" on activities for all using (auth.uid() = user_id);
 
 -- ============================================
 -- AUTO-UPDATE updated_at on profiles
