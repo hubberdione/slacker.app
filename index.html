@@ -88,7 +88,16 @@ button,input,select{font-family:inherit}
 .snav-lb{font-size:12px;font-weight:700}
 .snav-sb{font-size:10px;color:var(--tx3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
 .snav.on .snav-sb{color:var(--tx3)}
-.main{flex:1;padding:24px;overflow-y:auto;min-width:0;max-width:720px}
+.main{flex:1;padding:24px;overflow-y:auto;min-width:0}
+
+/* MOBILE BOTTOM NAV */
+.mob-nav{display:none;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--bg2);border-top:1.5px solid var(--bd);padding:4px 0 env(safe-area-inset-bottom)}
+.mob-nav-inner{display:flex;gap:0}
+.mnav{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:6px 2px;background:none;border:none;cursor:pointer;border-radius:12px;transition:all .18s cubic-bezier(.34,1.56,.64,1);color:var(--tx3)}
+.mnav.on{color:var(--ac)}
+.mnav:active{transform:scale(.88)}
+.mnav-ic{font-size:17px;line-height:1}
+.mnav-lb{font-size:9px;font-weight:800;letter-spacing:.01em;white-space:nowrap}
 
 /* PAGES */
 .pg{display:none}.pg.on{display:block}
@@ -253,11 +262,13 @@ button,input,select{font-family:inherit}
 /* RESPONSIVE */
 @media(max-width:600px){
   .sidebar{display:none}
+  .tnav-list{display:none}
+  .mob-nav{display:block}
+  .mob-nav-inner{display:flex}
   .m4{grid-template-columns:1fr 1fr}
   .fl2{grid-template-columns:1fr}
   .pal-grid{grid-template-columns:repeat(3,1fr)}
-  .tnav-list{display:flex}
-  .main{padding:16px}
+  .main{padding:16px;padding-bottom:90px}
 }
 @media(min-width:601px){.tnav-list{display:none}}
 </style>
@@ -485,6 +496,17 @@ button,input,select{font-family:inherit}
 
     </div>
   </div>
+  <nav class="mob-nav" id="mob-nav">
+    <div class="mob-nav-inner">
+      <button class="mnav on" id="mn-main" onclick="goP('pg-main')"><span class="mnav-ic">🧊</span><span class="mnav-lb">Fridge</span></button>
+      <button class="mnav" id="mn-meals" onclick="goP('pg-meals')"><span class="mnav-ic">🍳</span><span class="mnav-lb">Meals</span></button>
+      <button class="mnav" id="mn-time" onclick="goP('pg-time')"><span class="mnav-ic">⏱</span><span class="mnav-lb">Time</span></button>
+      <button class="mnav" id="mn-finance" onclick="goP('pg-finance')"><span class="mnav-ic">💰</span><span class="mnav-lb">Budget</span></button>
+      <button class="mnav" id="mn-debts" onclick="goP('pg-debts')"><span class="mnav-ic">💳</span><span class="mnav-lb">Debts</span></button>
+      <button class="mnav" id="mn-goals" onclick="goP('pg-goals')"><span class="mnav-ic">🎯</span><span class="mnav-lb">Goals</span></button>
+      <button class="mnav" id="mn-profile" onclick="goP('pg-profile')"><span class="mnav-ic">👤</span><span class="mnav-lb">Profile</span></button>
+    </div>
+  </nav>
 </div>
 
 <script>
@@ -528,7 +550,8 @@ function upPBar(){const w=parseFloat(document.getElementById('p-wk')?.value)||0,
 async function finishOnboard(){const nm=(document.getElementById('ob-nm')?.value||'').trim(),w=parseFloat(document.getElementById('ob-wk')?.value)||8,sl=parseFloat(document.getElementById('ob-sl')?.value)||7,p=parseFloat(document.getElementById('ob-pe')?.value)||2;sync('sy');const{data,error}=await sb.from('profiles').upsert({id:USER.id,name:nm,gender:obG,currency:document.getElementById('ob-cur')?.value||'PHP',lifestyle:document.getElementById('ob-lf')?.value||'other',work_hours:w,sleep_hours:sl,personal_hours:p,last_visit:new Date().toISOString()}).select().single();if(!error){PROF=data;sync('ok');goP('pg-main');}else{sync('er');alert('Error: '+error.message);}}
 const PMAP={'pg-main':'sn-main','pg-meals':'sn-meals','pg-recipe':'sn-meals','pg-time':'sn-time','pg-finance':'sn-finance','pg-debts':'sn-debts','pg-goals':'sn-goals','pg-profile':'sn-profile','pg-onboard':'sn-main'};
 const TMAP={'pg-main':0,'pg-meals':0,'pg-recipe':0,'pg-time':1,'pg-finance':2,'pg-debts':3,'pg-goals':4,'pg-profile':5};
-function goP(id){document.querySelectorAll('.main .pg').forEach(p=>p.className='pg');const pg=document.getElementById(id);if(pg)pg.className='pg on';document.querySelectorAll('.snav').forEach(b=>b.classList.remove('on'));const s=document.getElementById(PMAP[id]);if(s)s.classList.add('on');document.querySelectorAll('.tnav').forEach((b,i)=>b.classList.toggle('on',i===TMAP[id]));if(id==='pg-main')refreshMain();if(id==='pg-meals')refreshMeals();if(id==='pg-time')refreshTime();if(id==='pg-finance')refreshFinance();if(id==='pg-debts')refreshDebts();if(id==='pg-goals')refreshGoals();if(id==='pg-profile')loadPEdit();}
+const MMAP={'pg-main':'mn-main','pg-meals':'mn-meals','pg-recipe':'mn-meals','pg-time':'mn-time','pg-finance':'mn-finance','pg-debts':'mn-debts','pg-goals':'mn-goals','pg-profile':'mn-profile','pg-onboard':'mn-main'};
+function goP(id){document.querySelectorAll('.main .pg').forEach(p=>p.className='pg');const pg=document.getElementById(id);if(pg)pg.className='pg on';document.querySelectorAll('.snav').forEach(b=>b.classList.remove('on'));const s=document.getElementById(PMAP[id]);if(s)s.classList.add('on');document.querySelectorAll('.tnav').forEach((b,i)=>b.classList.toggle('on',i===TMAP[id]));document.querySelectorAll('.mnav').forEach(b=>b.classList.remove('on'));const mn=document.getElementById(MMAP[id]);if(mn)mn.classList.add('on');if(id==='pg-main')refreshMain();if(id==='pg-meals')refreshMeals();if(id==='pg-time')refreshTime();if(id==='pg-finance')refreshFinance();if(id==='pg-debts')refreshDebts();if(id==='pg-goals')refreshGoals();if(id==='pg-profile')loadPEdit();}
 async function addIng(){const inp=document.getElementById('ii'),raw=(inp.value||'').trim().toLowerCase();if(!raw)return;const keys=Object.keys(IDATA);let key=null;for(const k of keys){if(raw.includes(k)||k.includes(raw)||IDATA[k].name.toLowerCase().includes(raw)){key=k;break;}}if(INGS.find(x=>(x.key&&x.key===key&&key)||(!x.key&&x.raw===raw))){inp.value='';return;}sync('sy');const{data,error}=await sb.from('ingredients').insert({user_id:USER.id,key,raw,qty:1,unit:key?IDATA[key].unit:'units'}).select().single();if(!error){INGS.push(data);sync('ok');}else sync('er');inp.value='';renderIngList();}
 async function removeIng(id){sync('sy');await sb.from('ingredients').delete().eq('id',id);INGS=INGS.filter(x=>x.id!==id);sync('ok');renderIngList();}
 async function updateIngQty(id,qty){await sb.from('ingredients').update({qty:parseFloat(qty)||1}).eq('id',id);const i=INGS.find(x=>x.id===id);if(i)i.qty=parseFloat(qty)||1;}
