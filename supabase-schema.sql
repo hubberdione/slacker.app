@@ -38,6 +38,11 @@ ALTER TABLE profiles ADD COLUMN IF NOT EXISTS diet_plan text;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_type text DEFAULT 'cat';
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_health integer DEFAULT 80;
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS pet_period text DEFAULT 'daily';
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS weight_kg numeric;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS target_weight_kg numeric;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS height_cm numeric;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS age integer;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS activity_level text DEFAULT '1.55';
 
 -- ============================================
 -- INGREDIENTS TABLE
