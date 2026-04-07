@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Slackers — Kinda a meal prep guide</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+/* === PALETTE: Sunny (default) === */
+:root{
+  --bg:#fffde7;--bg2:#fef9c3;--bg3:#fef3a0;--bg4:#fde68a;
+  --bd:#fde68a;--bd2:#fcd34d;
+  --tx:#1c1400;--tx2:#6b5a08;--tx3:#a88a12;
+  --ac:#d97706;--ac-tx:#fff;
+  --gn:#16a34a;--am:#b45309;--rd:#dc2626;--pu:#6d28d9;--bl:#1d4ed8;--pk:#be185d;
+  --sh:0 2px 16px rgba(180,140,0,.10);--sh2:0 6px 28px rgba(180,140,0,.18);
+  --ac-ring:0 0 0 3px rgba(180,120,0,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:'Plus Jakarta Sans',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--tx);font-size:15px;line-height:1.6;min-height:100vh;-webkit-font-smoothing:antialiased;transition:background .35s,color .25s}
+button,input,select{font-family:inherit}
+
+/* AUTH */
+.auth-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;background:var(--bg);transition:background .35s}
+.auth-box{background:var(--bg2);border:1.5px solid var(--bd);border-radius:24px;padding:36px 32px;width:100%;max-width:420px;box-shadow:var(--sh2);transition:all .35s}
+.auth-logo{text-align:center;margin-bottom:28px}
+.auth-em{font-size:52px;display:block;line-height:1;margin-bottom:12px}
+.auth-title{font-size:27px;font-weight:800;letter-spacing:-.04em}
+.auth-title b{color:var(--ac)}
+.auth-sub{font-size:13px;color:var(--tx2);margin-top:5px;font-weight:500}
+.auth-tabs{display:flex;gap:4px;background:var(--bg3);border-radius:14px;padding:4px;margin-bottom:24px}
+.auth-tab{flex:1;height:40px;background:none;border:none;color:var(--tx2);font-size:13px;font-weight:700;border-radius:11px;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.auth-tab.on{background:var(--bg2);color:var(--tx);border:1.5px solid var(--bd2);box-shadow:var(--sh)}
+.auth-tab:hover:not(.on){color:var(--tx)}
+.auth-tab:active{transform:scale(.95)}
+.auth-form{display:flex;flex-direction:column;gap:13px}
+.auth-form.hide{display:none}
+.fi{display:flex;flex-direction:column;gap:6px}
+.fi-lb{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--tx2)}
+.inp{height:48px;background:var(--bg3);border:1.5px solid var(--bd);border-radius:13px;color:var(--tx);padding:0 16px;font-size:14px;font-weight:600;outline:none;width:100%;transition:all .2s}
+.inp:focus{border-color:var(--ac);background:var(--bg2);box-shadow:var(--ac-ring)}
+.inp::placeholder{color:var(--tx3);font-weight:400}
+.abtn{display:flex;align-items:center;justify-content:center;height:50px;border-radius:14px;font-size:15px;font-weight:800;border:none;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);width:100%;letter-spacing:-.01em}
+.abtn:active{transform:scale(.96)!important}
+.abtn.pr{background:var(--ac);color:var(--ac-tx)}
+.abtn.pr:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.abtn.pr:disabled{opacity:.5;cursor:not-allowed;transform:none!important;box-shadow:none}
+.abtn.gh{background:var(--bg3);border:1.5px solid var(--bd2);color:var(--tx2)}
+.abtn.gh:hover{background:var(--bg4);color:var(--tx);transform:translateY(-1px)}
+.aerr{background:rgba(220,38,38,.08);border:1.5px solid rgba(220,38,38,.2);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;color:var(--rd);display:none}
+.amsg{background:rgba(22,163,74,.08);border:1.5px solid rgba(22,163,74,.2);border-radius:12px;padding:12px 14px;font-size:13px;font-weight:600;color:var(--gn);display:none}
+
+/* TOPBAR */
+.topbar{position:sticky;top:0;z-index:50;background:var(--bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);border-bottom:1.5px solid var(--bd);height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;gap:10px;transition:background .35s,border-color .25s}
+.logo{font-size:19px;font-weight:800;letter-spacing:-.04em;color:var(--tx)}
+.logo b{color:var(--ac)}
+.tnav-list{display:flex;gap:3px;overflow-x:auto;-ms-overflow-style:none;scrollbar-width:none}
+.tnav-list::-webkit-scrollbar{display:none}
+.tnav{background:none;border:1.5px solid transparent;color:var(--tx2);font-size:12px;font-weight:700;padding:7px 12px;border-radius:10px;white-space:nowrap;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.tnav:hover{color:var(--tx);background:var(--bg2)}
+.tnav.on{color:var(--tx);background:var(--bg2);border-color:var(--bd2)}
+.tnav:active{transform:scale(.93)}
+.tb-right{display:flex;align-items:center;gap:8px;flex-shrink:0}
+.sync-wrap{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx3);font-weight:700}
+.sdot{width:7px;height:7px;border-radius:50%;background:var(--gn);transition:background .3s}
+.sdot.sy{background:var(--am);animation:p1 1s infinite}
+.sdot.er{background:var(--rd)}
+@keyframes p1{0%,100%{opacity:1}50%{opacity:.3}}
+.so-btn{background:var(--bg3);border:1.5px solid var(--bd2);border-radius:10px;color:var(--tx2);font-size:12px;font-weight:700;padding:6px 13px;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.so-btn:hover{background:var(--bg4);color:var(--tx);transform:translateY(-1px)}
+.so-btn:active{transform:scale(.95)}
+
+/* LAYOUT */
+.app-layout{display:flex;min-height:calc(100vh - 56px)}
+.sidebar{width:210px;flex-shrink:0;border-right:1.5px solid var(--bd);padding:14px 10px;display:flex;flex-direction:column;gap:3px;overflow-y:auto;transition:background .35s,border-color .25s}
+.sb-prof{display:flex;align-items:center;gap:10px;padding:10px 8px 14px;border-bottom:1.5px solid var(--bd);margin-bottom:8px}
+.sb-av{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:22px;border:1.5px solid var(--bd2);flex-shrink:0}
+.sb-nm{font-size:13px;font-weight:800;color:var(--tx)}
+.sb-mt{font-size:10px;color:var(--tx3);margin-top:1px;font-weight:600;text-transform:capitalize}
+.snav{display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:13px;background:none;border:1.5px solid transparent;color:var(--tx2);font-size:12px;font-weight:700;width:100%;text-align:left;cursor:pointer;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.snav:hover{background:var(--bg2);color:var(--tx)}
+.snav.on{background:var(--bg2);color:var(--tx);border-color:var(--bd2);box-shadow:var(--sh)}
+.snav:active{transform:scale(.97)}
+.snav-ic{font-size:15px;flex-shrink:0;width:20px;text-align:center}
+.snav-tx{flex:1;min-width:0}
+.snav-lb{font-size:12px;font-weight:700}
+.snav-sb{font-size:10px;color:var(--tx3);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:600}
+.snav.on .snav-sb{color:var(--tx3)}
+.main{flex:1;padding:24px;overflow-y:auto;min-width:0;max-width:720px}
+
+/* PAGES */
+.pg{display:none}.pg.on{display:block}
+
+/* ONBOARD */
+.ob-wrap{max-width:460px;margin:0 auto;padding:30px 16px 40px}
+.ob-hero{text-align:center;margin-bottom:24px}
+.ob-em{font-size:56px;display:block;line-height:1;margin-bottom:12px;animation:bob 2s ease-in-out infinite alternate}
+.ob-tit{font-size:28px;font-weight:800;letter-spacing:-.04em}
+.ob-tit b{color:var(--ac)}
+.ob-sub{font-size:14px;color:var(--tx2);margin-top:6px;line-height:1.6;font-weight:500}
+.dots{display:flex;gap:6px;justify-content:center;margin-bottom:24px}
+.dot{width:7px;height:7px;border-radius:99px;background:var(--bd2);transition:all .3s cubic-bezier(.34,1.56,.64,1)}
+.dot.on{width:24px;background:var(--ac)}
+.step{display:none}.step.on{display:block}
+.obc{background:var(--bg2);border:1.5px solid var(--bd);border-radius:22px;padding:24px;box-shadow:var(--sh)}
+.obc-h{font-size:18px;font-weight:800;margin-bottom:4px;letter-spacing:-.02em}
+.obc-s{font-size:13px;color:var(--tx2);margin-bottom:20px;line-height:1.6;font-weight:500}
+.fld{margin-bottom:14px}
+.fld-lb{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--tx2);margin-bottom:6px;display:flex;align-items:center;gap:3px}
+.req{color:var(--rd)}
+.sel{width:100%;height:48px;background:var(--bg3);border:1.5px solid var(--bd);border-radius:13px;color:var(--tx);padding:0 14px;font-size:14px;font-weight:600;outline:none;cursor:pointer;appearance:none;transition:all .2s}
+.sel:focus{border-color:var(--ac);background:var(--bg2);box-shadow:var(--ac-ring)}
+.gbs{display:flex;gap:8px}
+.gb{flex:1;height:48px;background:var(--bg3);border:1.5px solid var(--bd);border-radius:13px;color:var(--tx2);font-size:14px;font-weight:800;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.gb:hover{border-color:var(--bd2);color:var(--tx);transform:translateY(-2px)}
+.gb:active{transform:scale(.96)}
+.gb.gm{background:rgba(29,78,216,.08);border-color:rgba(29,78,216,.3);color:var(--bl)}
+.gb.gf{background:rgba(190,24,93,.08);border-color:rgba(190,24,93,.3);color:var(--pk)}
+.gb.go{background:rgba(22,163,74,.1);border-color:rgba(22,163,74,.3);color:var(--gn)}
+.fl2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.ferr{font-size:12px;font-weight:700;color:var(--rd);margin-top:5px;display:none}
+.barwrap{background:var(--bg3);border:1.5px solid var(--bd);border-radius:14px;padding:14px;margin-top:4px}
+.tbar{display:flex;height:10px;border-radius:99px;overflow:hidden;gap:2px;margin-bottom:9px}
+.tbs{height:100%;border-radius:2px}
+.bar-leg{display:flex;flex-wrap:wrap;gap:8px}
+.bar-li{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--tx2);font-weight:600}
+.bar-ld{width:8px;height:8px;border-radius:50%}
+.bar-sm{font-size:12px;color:var(--tx3);margin-top:7px;font-weight:600}
+
+/* FRIDGE HERO */
+.fhero{background:var(--bg2);border:1.5px solid var(--bd);border-radius:22px;padding:24px;text-align:center;margin-bottom:16px;position:relative;overflow:hidden;box-shadow:var(--sh)}
+.fhero::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse at 50% -10%,var(--bg4),transparent 70%);pointer-events:none;opacity:.5}
+.fhero-em{font-size:48px;display:block;line-height:1;margin-bottom:10px;position:relative}
+.fhero-mg{font-size:14px;font-style:italic;color:var(--tx2);line-height:1.6;font-weight:500;position:relative}
+.fhero-tp{font-size:12px;color:var(--ac);font-weight:800;margin-top:7px;position:relative}
+
+/* METRICS */
+.mets{display:grid;gap:8px;margin-bottom:14px}
+.m4{grid-template-columns:repeat(4,1fr)}
+.m3{grid-template-columns:repeat(3,1fr)}
+.m2{grid-template-columns:1fr 1fr}
+.met{background:var(--bg2);border:1.5px solid var(--bd);border-radius:16px;padding:14px 10px;text-align:center;box-shadow:var(--sh);transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.met:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.met-l{font-size:9px;font-weight:800;text-transform:uppercase;letter-spacing:.1em;color:var(--tx3)}
+.met-v{font-size:19px;font-weight:800;margin-top:4px;color:var(--tx);letter-spacing:-.03em}
+.met.g .met-v{color:var(--gn)}.met.a .met-v{color:var(--am)}.met.r .met-v{color:var(--rd)}.met.p .met-v{color:var(--pu)}
+
+/* PILLS */
+.pill{display:inline-flex;align-items:center;font-size:10px;font-weight:800;padding:3px 9px;border-radius:99px;white-space:nowrap;letter-spacing:.02em}
+.pill.g{background:rgba(22,163,74,.12);color:var(--gn);border:1.5px solid rgba(22,163,74,.2)}
+.pill.a{background:rgba(180,83,9,.1);color:var(--am);border:1.5px solid rgba(180,83,9,.2)}
+.pill.r{background:rgba(220,38,38,.1);color:var(--rd);border:1.5px solid rgba(220,38,38,.2)}
+.pill.p{background:rgba(109,40,217,.1);color:var(--pu);border:1.5px solid rgba(109,40,217,.2)}
+.pill.gr{background:var(--bg3);color:var(--tx2);border:1.5px solid var(--bd2)}
+
+/* CARDS */
+.ccard{background:var(--bg2);border:1.5px solid var(--bd);border-radius:22px;padding:20px 22px;margin-bottom:12px;box-shadow:var(--sh)}
+.sec-ey{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.12em;color:var(--ac);margin-bottom:4px}
+.sec-h{font-size:27px;font-weight:800;letter-spacing:-.04em;margin-bottom:4px}
+.sec-s{font-size:13px;color:var(--tx2);margin-bottom:18px;line-height:1.6;font-weight:500}
+.ctitle{font-size:11px;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--tx2);margin-bottom:13px}
+
+/* INGREDIENT CARD */
+.ic{background:var(--bg3);border:1.5px solid var(--bd);border-radius:16px;padding:14px 16px;margin-bottom:8px;transition:all .2s}
+.ic:hover{border-color:var(--bd2);box-shadow:var(--sh)}
+.ic-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px}
+.ic-nm{font-size:14px;font-weight:800;letter-spacing:-.01em}
+.ic-x{background:none;border:none;color:var(--tx3);font-size:22px;line-height:1;cursor:pointer;padding:2px 6px;transition:all .2s cubic-bezier(.34,1.56,.64,1);border-radius:8px}
+.ic-x:hover{color:var(--rd);background:rgba(220,38,38,.1);transform:rotate(90deg) scale(1.1)}
+.ic-fc{font-size:12px;color:var(--tx2);line-height:1.5;margin-bottom:8px;font-weight:500}
+.ic-nuts{display:flex;flex-wrap:wrap;gap:4px;margin-bottom:8px}
+.ic-qr{display:flex;align-items:center;gap:9px;flex-wrap:wrap}
+.ic-ql{font-size:11px;color:var(--tx2);font-weight:700}
+.qn{width:58px;height:34px;background:var(--bg2);border:1.5px solid var(--bd2);border-radius:10px;color:var(--tx);padding:0 8px;font-size:13px;font-weight:700;text-align:center;outline:none;transition:all .2s}
+.qn:focus{border-color:var(--ac);box-shadow:var(--ac-ring)}
+.qu{height:34px;background:var(--bg2);border:1.5px solid var(--bd2);border-radius:10px;color:var(--tx2);padding:0 9px;font-size:12px;font-weight:600;outline:none;cursor:pointer;transition:all .2s}
+.qu:focus{border-color:var(--ac)}
+.qc{font-size:12px;color:var(--tx2);font-weight:600}
+.qc b{color:var(--pu)}
+
+/* MEAL CARD */
+.mc{background:var(--bg3);border:1.5px solid var(--bd);border-radius:18px;padding:16px 18px;margin-bottom:10px;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1)}
+.mc:hover{background:var(--bg2);border-color:var(--ac);transform:translateY(-4px);box-shadow:var(--sh2)}
+.mc:active{transform:scale(.98)}
+.mc-top{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:6px}
+.mc-nm{font-size:15px;font-weight:800;letter-spacing:-.02em}
+.mc-meta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:6px}
+.mc-desc{font-size:13px;color:var(--tx2);line-height:1.5;margin-bottom:6px;font-weight:500}
+.mc-cta{font-size:12px;color:var(--ac);font-weight:800}
+
+/* RECIPE */
+.rstep{display:flex;align-items:flex-start;padding:11px 0;border-bottom:1.5px solid var(--bd);font-size:13px;line-height:1.6;color:var(--tx2);gap:12px;font-weight:500}
+.rstep:last-child{border:none}
+.rsn{display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:50%;background:var(--bg3);color:var(--ac);font-size:11px;font-weight:800;flex-shrink:0;border:1.5px solid var(--bd2);margin-top:1px}
+.rst{font-size:11px;color:var(--tx3);margin-left:3px;font-weight:700}
+
+/* ROWS */
+.irow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1.5px solid var(--bd);font-size:13px;color:var(--tx2);font-weight:600}
+.irow:last-child{border:none}
+
+/* PROGRESS */
+.prog{height:7px;background:var(--bg4);border-radius:99px;overflow:hidden;margin:4px 0 8px}
+.pf{height:100%;border-radius:99px;background:var(--gn);transition:width .5s cubic-bezier(.34,1.56,.64,1)}
+.pf.w{background:var(--am)}.pf.d{background:var(--rd)}
+
+/* CAL BAR */
+.calbar{display:flex;gap:3px;height:7px;border-radius:99px;overflow:hidden;margin:7px 0 4px}
+.cs:first-child{border-radius:99px 0 0 99px}.cs:last-child{border-radius:0 99px 99px 0}
+
+/* MISC */
+.alg{background:rgba(22,163,74,.08);border:1.5px solid rgba(22,163,74,.2);border-radius:14px;padding:13px 16px;margin-bottom:14px;font-size:13px;color:var(--gn);line-height:1.6;font-weight:600}
+.divider{border:none;border-top:1.5px solid var(--bd);margin:14px 0}
+.bk{background:none;border:none;color:var(--tx2);font-size:13px;font-weight:700;display:flex;align-items:center;gap:5px;margin-bottom:18px;cursor:pointer;padding:8px 12px;border-radius:11px;transition:all .2s cubic-bezier(.34,1.56,.64,1)}
+.bk:hover{color:var(--tx);background:var(--bg2);transform:translateX(-3px)}
+.bk:active{transform:scale(.96)}
+.sm-btn{display:inline-flex;align-items:center;justify-content:center;height:44px;padding:0 20px;border-radius:13px;font-size:13px;font-weight:800;border:none;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);white-space:nowrap;letter-spacing:-.01em}
+.sm-btn:active{transform:scale(.95)!important}
+.sm-btn.pr{background:var(--ac);color:var(--ac-tx)}
+.sm-btn.pr:hover{transform:translateY(-2px);box-shadow:var(--sh2)}
+.sm-btn.gh{background:var(--bg3);border:1.5px solid var(--bd2);color:var(--tx2)}
+.sm-btn.gh:hover{background:var(--bg4);color:var(--tx);transform:translateY(-1px)}
+.fw{width:100%;margin-top:10px}
+.life-btn{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border:1.5px solid var(--bd);border-radius:18px;padding:15px 17px;margin-bottom:9px;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);width:100%;box-shadow:var(--sh)}
+.life-btn:hover{border-color:var(--bd2);transform:translateY(-3px);box-shadow:var(--sh2)}
+.life-btn:active{transform:scale(.98)}
+.lbi{display:flex;align-items:center;gap:13px}
+.li-ic{width:40px;height:40px;border-radius:13px;display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.li-title{font-size:14px;font-weight:800;text-align:left;color:var(--tx);letter-spacing:-.01em}
+.li-sub{font-size:12px;color:var(--tx2);text-align:left;margin-top:2px;font-weight:600}
+.ing-add{display:flex;gap:8px;margin-bottom:13px}
+.ing-add .inp{flex:1;height:46px}
+
+/* LOADING */
+.loading{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;flex-direction:column;gap:18px;transition:background .35s}
+.loading-em{font-size:60px;animation:bob 1.2s ease-in-out infinite alternate}
+@keyframes bob{from{transform:translateY(0) rotate(-6deg)}to{transform:translateY(-12px) rotate(6deg)}}
+.loading-tx{font-size:15px;color:var(--tx2);font-weight:600}
+
+/* PALETTE PICKER */
+.pal-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-top:6px}
+.pal-btn{position:relative;background:var(--bg3);border:2px solid var(--bd);border-radius:16px;padding:12px 6px 10px;cursor:pointer;transition:all .22s cubic-bezier(.34,1.56,.64,1);display:flex;flex-direction:column;align-items:center;gap:7px}
+.pal-btn:hover{transform:translateY(-3px);box-shadow:var(--sh2)}
+.pal-btn.on{border-color:var(--ac);box-shadow:var(--ac-ring)}
+.pal-btn:active{transform:scale(.95)}
+.pal-preview{display:flex;gap:2px;width:100%;border-radius:8px;overflow:hidden;height:26px}
+.pal-swatch{flex:1;height:100%}
+.pal-name{font-size:10px;font-weight:800;color:var(--tx2);text-align:center;line-height:1.3}
+.pal-check{position:absolute;top:5px;right:6px;width:18px;height:18px;border-radius:50%;background:var(--ac);color:var(--ac-tx);font-size:10px;font-weight:900;display:none;align-items:center;justify-content:center}
+.pal-btn.on .pal-check{display:flex}
+
+/* RESPONSIVE */
+@media(max-width:600px){
+  .sidebar{display:none}
+  .m4{grid-template-columns:1fr 1fr}
+  .fl2{grid-template-columns:1fr}
+  .pal-grid{grid-template-columns:repeat(3,1fr)}
+  .tnav-list{display:flex}
+  .main{padding:16px}
+}
+@media(min-width:601px){.tnav-list{display:none}}
+</style>
+</head>
+<body>
+
+<div class="loading" id="loading">
+  <div class="loading-em">🧊</div>
+  <div class="loading-tx">Opening the fridge...</div>
+</div>
+
+<!-- AUTH -->
+<div class="auth-wrap" id="auth-pg" style="display:none">
+  <div class="auth-box">
+    <div class="auth-logo">
+      <span class="auth-em">🧊</span>
+      <div class="auth-title">Slackers<b>.</b></div>
+      <div class="auth-sub">Kinda a meal prep guide. Actually a life guide.</div>
+    </div>
+    <div class="auth-tabs">
+      <button class="auth-tab on" id="t-login" onclick="switchTab('login')">Sign in</button>
+      <button class="auth-tab" id="t-signup" onclick="switchTab('signup')">Create account</button>
+    </div>
+    <div class="aerr" id="a-err"></div>
+    <div class="amsg" id="a-msg"></div>
+    <form class="auth-form" id="f-login" onsubmit="doLogin(event)">
+      <div class="fi"><div class="fi-lb">Email</div><input class="inp" id="l-em" type="email" placeholder="you@example.com" required></div>
+      <div class="fi"><div class="fi-lb">Password</div><input class="inp" id="l-pw" type="password" placeholder="Your password" required></div>
+      <button class="abtn pr" type="submit" id="l-btn">Sign in</button>
+    </form>
+    <form class="auth-form hide" id="f-signup" onsubmit="doSignup(event)">
+      <div class="fi"><div class="fi-lb">Your name</div><input class="inp" id="s-nm" type="text" placeholder="What should I call you?" required></div>
+      <div class="fi"><div class="fi-lb">Email</div><input class="inp" id="s-em" type="email" placeholder="you@example.com" required></div>
+      <div class="fi"><div class="fi-lb">Password</div><input class="inp" id="s-pw" type="password" placeholder="At least 6 characters" minlength="6" required></div>
+      <button class="abtn pr" type="submit" id="s-btn">Create account</button>
+    </form>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+  <nav class="topbar">
+    <div class="logo">Slackers<b>.</b></div>
+    <div class="tnav-list">
+      <button class="tnav on" onclick="goP('pg-main')">🧊 Fridge</button>
+      <button class="tnav" onclick="goP('pg-time')">⏱ Time</button>
+      <button class="tnav" onclick="goP('pg-finance')">💰 Budget</button>
+      <button class="tnav" onclick="goP('pg-debts')">💳 Debts</button>
+      <button class="tnav" onclick="goP('pg-goals')">🎯 Goals</button>
+      <button class="tnav" onclick="goP('pg-profile')">👤 Profile</button>
+    </div>
+    <div class="tb-right">
+      <div class="sync-wrap"><div class="sdot" id="sdot"></div><span id="stx">Synced</span></div>
+      <button class="so-btn" onclick="doSignOut()">Sign out</button>
+    </div>
+  </nav>
+  <div class="app-layout">
+    <aside class="sidebar">
+      <div class="sb-prof">
+        <div class="sb-av" id="sb-av"></div>
+        <div><div class="sb-nm" id="sb-nm">—</div><div class="sb-mt" id="sb-mt">—</div></div>
+      </div>
+      <button class="snav on" id="sn-main" onclick="goP('pg-main')"><span class="snav-ic">🧊</span><div class="snav-tx"><div class="snav-lb">Fridge</div><div class="snav-sb" id="sn-fi">Add ingredients</div></div></button>
+      <button class="snav" id="sn-meals" onclick="goP('pg-meals')"><span class="snav-ic">🍳</span><div class="snav-tx"><div class="snav-lb">Meals</div><div class="snav-sb">What you can make</div></div></button>
+      <button class="snav" id="sn-time" onclick="goP('pg-time')"><span class="snav-ic">⏱</span><div class="snav-tx"><div class="snav-lb">Time</div><div class="snav-sb" id="sn-ti">—</div></div></button>
+      <button class="snav" id="sn-finance" onclick="goP('pg-finance')"><span class="snav-ic">💰</span><div class="snav-tx"><div class="snav-lb">Budget</div><div class="snav-sb" id="sn-fi2">—</div></div></button>
+      <button class="snav" id="sn-debts" onclick="goP('pg-debts')"><span class="snav-ic">💳</span><div class="snav-tx"><div class="snav-lb">Debts</div><div class="snav-sb" id="sn-di">—</div></div></button>
+      <button class="snav" id="sn-goals" onclick="goP('pg-goals')"><span class="snav-ic">🎯</span><div class="snav-tx"><div class="snav-lb">Goals</div><div class="snav-sb" id="sn-gi">—</div></div></button>
+      <div class="divider"></div>
+      <button class="snav" id="sn-profile" onclick="goP('pg-profile')"><span class="snav-ic">👤</span><div class="snav-tx"><div class="snav-lb">Profile</div></div></button>
+    </aside>
+    <div class="main">
+
+      <!-- ONBOARD -->
+      <div id="pg-onboard" class="pg on">
+        <div class="ob-wrap">
+          <div class="ob-hero"><span class="ob-em">🧊</span><div class="ob-tit">Slackers<b>.</b></div><div class="ob-sub">Kinda a meal prep guide. Actually a life guide.</div></div>
+          <div class="dots"><div class="dot on" id="d1"></div><div class="dot" id="d2"></div><div class="dot" id="d3"></div></div>
+          <div id="os1" class="step on">
+            <div class="obc">
+              <div class="obc-h">Set up your profile</div>
+              <div class="obc-s">This helps the app talk to you properly and track the right things.</div>
+              <div class="fld"><div class="fld-lb">Your name <span class="req">*</span></div><input class="inp" id="ob-nm" type="text" placeholder="What should I call you?" style="width:100%"><div class="ferr" id="ob-nm-err">Name is required.</div></div>
+              <div class="fld"><div class="fld-lb">Gender <span class="req">*</span></div><div class="gbs"><button type="button" class="gb gm" id="gbm" onclick="pickG('male')">Male</button><button type="button" class="gb" id="gbf" onclick="pickG('female')">Female</button><button type="button" class="gb" id="gbo" onclick="pickG('other')">Other</button></div></div>
+              <div class="fl2">
+                <div class="fld"><div class="fld-lb">Currency</div><select class="sel" id="ob-cur"><option value="PHP">PHP ₱</option><option value="USD">USD $</option><option value="SGD">SGD S$</option><option value="AUD">AUD A$</option><option value="GBP">GBP £</option><option value="EUR">EUR €</option></select></div>
+                <div class="fld"><div class="fld-lb">Lifestyle</div><select class="sel" id="ob-lf"><option value="freelancer">Freelancer / VA</option><option value="employed">Employed (9–5)</option><option value="student">Student</option><option value="business">Business owner</option><option value="other">Other</option></select></div>
+              </div>
+              <button type="button" class="abtn pr" style="width:100%;height:44px;margin-top:4px" id="os1-btn">Continue →</button>
+            </div>
+          </div>
+          <div id="os2" class="step">
+            <div class="obc">
+              <div class="obc-h">Your 24-hour day</div>
+              <div class="obc-s">Free time = 24 − work − sleep − personal. Meal prep deducts automatically from free time.</div>
+              <div class="fl2">
+                <div class="fld"><div class="fld-lb">Work hrs/day</div><input class="inp" id="ob-wk" type="number" value="8" min="0" max="20" step=".5" style="width:100%"></div>
+                <div class="fld"><div class="fld-lb">Sleep hrs/day</div><input class="inp" id="ob-sl" type="number" value="7" min="3" max="12" step=".5" style="width:100%"></div>
+              </div>
+              <div class="fld"><div class="fld-lb">Personal time (hrs)</div><input class="inp" id="ob-pe" type="number" value="2" min="0" max="10" step=".5" style="width:100%"></div>
+              <div class="barwrap"><div class="tbar" id="ob-bar"></div><div class="bar-leg"><div class="bar-li"><div class="bar-ld" style="background:#3b82f6"></div>Work</div><div class="bar-li"><div class="bar-ld" style="background:#7c3aed"></div>Sleep</div><div class="bar-li"><div class="bar-ld" style="background:#ec4899"></div>Personal</div><div class="bar-li"><div class="bar-ld" style="background:#22c55e"></div>Free</div></div><div class="bar-sm" id="ob-bar-tx">—</div></div>
+              <div style="display:flex;gap:8px;margin-top:12px"><button type="button" class="sm-btn gh" style="flex:1;height:44px" id="os2-bk">← Back</button><button type="button" class="sm-btn pr" style="flex:2;height:44px" id="os2-btn">Continue →</button></div>
+            </div>
+          </div>
+          <div id="os3" class="step">
+            <div class="obc" style="text-align:center">
+              <div style="font-size:44px;margin-bottom:9px">🎉</div>
+              <div style="font-size:19px;font-weight:800;margin-bottom:5px" id="wc-h">Welcome!</div>
+              <div style="font-size:13px;color:var(--tx2);margin-bottom:16px;line-height:1.6" id="wc-s">Your fridge is ready.</div>
+              <div class="barwrap" style="text-align:left;margin-bottom:16px"><div class="tbar" id="ob-bar2"></div><div class="bar-sm" id="ob-bar2-tx">—</div></div>
+              <button type="button" class="abtn pr" style="width:100%;height:46px" id="os3-btn">Open the fridge 🧊</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- FRIDGE -->
+      <div id="pg-main" class="pg">
+        <div class="fhero"><span class="fhero-em" id="ff">🧊</span><div class="fhero-mg" id="fs">Loading...</div><div class="fhero-tp" id="fm"></div></div>
+        <div class="mets m4"><div class="met a"><div class="met-l">Work</div><div class="met-v" id="mw">—</div></div><div class="met"><div class="met-l">Sleep</div><div class="met-v" id="ms">—</div></div><div class="met a"><div class="met-l">Cooking</div><div class="met-v" id="mc">0h</div></div><div class="met g"><div class="met-l">Free</div><div class="met-v" id="mf">—</div></div></div>
+        <div class="barwrap" style="margin-bottom:14px"><div class="tbar" id="mb"></div><div class="bar-sm" id="mb-tx">—</div></div>
+        <div class="ccard">
+          <div class="ctitle">What's in your fridge?</div>
+          <div class="ing-add"><input class="inp" type="text" id="ii" placeholder="Add ingredient (eggs, rice, chicken...)"><button type="button" class="sm-btn pr" id="aib">+ Add</button></div>
+          <div id="il"><div style="font-size:12px;color:var(--tx2)">No ingredients yet.</div></div>
+          <button type="button" class="sm-btn pr fw" id="smb">Show me what I can make →</button>
+        </div>
+        <div style="margin-top:4px">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2);margin-bottom:10px">Life stuff</div>
+          <button class="life-btn" onclick="goP('pg-time')"><div class="lbi"><div class="li-ic" style="background:rgba(34,197,94,.1)">⏱</div><div><div class="li-title">Time planner</div><div class="li-sub" id="m-ts">—</div></div></div><span style="color:var(--tx3)">›</span></button>
+          <button class="life-btn" onclick="goP('pg-finance')"><div class="lbi"><div class="li-ic" style="background:rgba(96,165,250,.1)">💰</div><div><div class="li-title">Budget tracker</div><div class="li-sub" id="m-fs">—</div></div></div><span style="color:var(--tx3)">›</span></button>
+          <button class="life-btn" onclick="goP('pg-debts')"><div class="lbi"><div class="li-ic" style="background:rgba(239,68,68,.1)">💳</div><div><div class="li-title">Debt tracker</div><div class="li-sub" id="m-ds">—</div></div></div><span style="color:var(--tx3)">›</span></button>
+          <button class="life-btn" onclick="goP('pg-goals')"><div class="lbi"><div class="li-ic" style="background:rgba(245,158,11,.1)">🎯</div><div><div class="li-title">Goals & savings</div><div class="li-sub" id="m-gs">—</div></div></div><span style="color:var(--tx3)">›</span></button>
+        </div>
+      </div>
+
+      <!-- MEALS -->
+      <div id="pg-meals" class="pg">
+        <button type="button" class="bk" onclick="goP('pg-main')">← Back to fridge</button>
+        <div class="sec-ey">Meal suggestions</div>
+        <div class="sec-h" id="mlh">What you can make</div>
+        <div class="sec-s" id="mls">Based only on what's in your fridge.</div>
+        <div class="fhero"><span class="fhero-em" id="mff">🍳</span><div class="fhero-mg" id="mfm">Checking...</div></div>
+        <div id="mll"></div>
+      </div>
+
+      <!-- RECIPE -->
+      <div id="pg-recipe" class="pg">
+        <button type="button" class="bk" onclick="goP('pg-meals')">← Back to meals</button>
+        <div id="ro"></div>
+      </div>
+
+      <!-- TIME -->
+      <div id="pg-time" class="pg">
+        <div class="sec-ey">Time planner</div><div class="sec-h" id="th">Your day</div><div class="sec-s" id="ts-s">Every hour accounted for.</div>
+        <div class="fhero"><span class="fhero-em">⏰</span><div class="fhero-mg" id="tr">Checking...</div></div>
+        <div class="mets m4"><div class="met a"><div class="met-l">Work</div><div class="met-v" id="tw">—</div></div><div class="met"><div class="met-l">Sleep</div><div class="met-v" id="tsl">—</div></div><div class="met a"><div class="met-l">Cooking</div><div class="met-v" id="tc">—</div></div><div class="met g"><div class="met-l">Free</div><div class="met-v" id="tf">—</div></div></div>
+        <div class="barwrap" style="margin-bottom:14px"><div class="tbar" id="tb"></div><div class="bar-sm" id="tb-tx">—</div></div>
+        <div class="ccard"><div class="ctitle">Meals cooked today</div><div id="cl"><div style="font-size:12px;color:var(--tx2)">No meals cooked today.</div></div></div>
+      </div>
+
+      <!-- FINANCE -->
+      <div id="pg-finance" class="pg">
+        <div class="sec-ey">Budget tracker</div><div class="sec-h">Your money</div><div class="sec-s" id="fi-s">The numbers don't lie.</div>
+        <div class="fhero"><span class="fhero-em">💸</span><div class="fhero-mg" id="fi-r">—</div></div>
+        <div class="mets m2"><div class="met g"><div class="met-l">Monthly income</div><div class="met-v" id="fi-i">—</div></div><div class="met r"><div class="met-l">Monthly expenses</div><div class="met-v" id="fi-e">—</div></div></div>
+        <div class="met" style="margin-bottom:12px;text-align:center"><div class="met-l">Net balance</div><div class="met-v" id="fi-n">—</div></div>
+        <div class="ccard"><div class="ctitle">Add income</div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Source</div><input class="inp" id="i-src" placeholder="e.g. Salary" type="text" style="width:100%"></div><div class="fld"><div class="fld-lb">Amount</div><input class="inp" id="i-amt" type="number" min="0" placeholder="0" style="width:100%"></div></div>
+          <div class="fld"><div class="fld-lb">Frequency</div><select class="sel" id="i-freq"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="oneoff">One-off</option></select></div>
+          <button type="button" class="sm-btn pr fw" id="ai-btn">Add income</button>
+        </div>
+        <div class="ccard"><div class="ctitle">Add expense</div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Description</div><input class="inp" id="e-desc" placeholder="e.g. Rent" type="text" style="width:100%"></div><div class="fld"><div class="fld-lb">Amount</div><input class="inp" id="e-amt" type="number" min="0" placeholder="0" style="width:100%"></div></div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Category</div><select class="sel" id="e-cat"><option value="housing">Housing</option><option value="food">Food</option><option value="transport">Transport</option><option value="bills">Bills</option><option value="subscriptions">Subscriptions</option><option value="personal">Personal</option><option value="other">Other</option></select></div><div class="fld"><div class="fld-lb">Frequency</div><select class="sel" id="e-freq"><option value="monthly">Monthly</option><option value="weekly">Weekly</option><option value="daily">Daily</option><option value="oneoff">One-off</option></select></div></div>
+          <button type="button" class="sm-btn pr fw" id="ae-btn">Add expense</button>
+        </div>
+        <div class="ccard"><div class="ctitle">All entries</div><div id="fi-ll"><div style="font-size:12px;color:var(--tx2)">Nothing yet.</div></div></div>
+      </div>
+
+      <!-- DEBTS -->
+      <div id="pg-debts" class="pg">
+        <div class="sec-ey">Debt tracker</div><div class="sec-h" id="dt-h">Face it. Destroy it.</div><div class="sec-s" id="dt-s">—</div>
+        <div class="fhero"><span class="fhero-em">😬</span><div class="fhero-mg" id="dt-r">—</div></div>
+        <div class="mets m2"><div class="met r"><div class="met-l">Total debt</div><div class="met-v" id="dt-t">—</div></div><div class="met a"><div class="met-l">Monthly payments</div><div class="met-v" id="dt-m">—</div></div></div>
+        <div class="ccard"><div class="ctitle">Add a debt</div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Name</div><input class="inp" id="d-nm" placeholder="e.g. Credit card" type="text" style="width:100%"></div><div class="fld"><div class="fld-lb">Total owed</div><input class="inp" id="d-ow" type="number" min="0" placeholder="0" style="width:100%"></div></div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Monthly payment</div><input class="inp" id="d-py" type="number" min="0" placeholder="0" style="width:100%"></div><div class="fld"><div class="fld-lb">Interest % /yr</div><input class="inp" id="d-in" type="number" min="0" step=".1" placeholder="0" style="width:100%"></div></div>
+          <button type="button" class="sm-btn pr fw" id="ad-btn">Add debt</button>
+        </div>
+        <div class="ccard"><div class="ctitle">Your debts</div><div id="dt-ll"><div style="font-size:12px;color:var(--tx2)">No debts logged yet.</div></div></div>
+        <div id="snowball" class="ccard" style="display:none"><div class="ctitle">Snowball strategy</div><div id="sbc"></div><div style="font-size:11px;color:var(--tx2);margin-top:6px">Pay minimums on all. Throw extra at #1. Roll to #2 when done.</div></div>
+      </div>
+
+      <!-- GOALS -->
+      <div id="pg-goals" class="pg">
+        <div class="sec-ey">Goals & savings</div><div class="sec-h" id="go-h">What you're building toward</div><div class="sec-s" id="go-s">—</div>
+        <div class="fhero"><span class="fhero-em">🎯</span><div class="fhero-mg" id="go-r">—</div></div>
+        <div class="ccard"><div class="ctitle">Add a goal</div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Goal name</div><input class="inp" id="g-nm" placeholder="e.g. Emergency fund" type="text" style="width:100%"></div><div class="fld"><div class="fld-lb">Target amount</div><input class="inp" id="g-tg" type="number" min="0" placeholder="0" style="width:100%"></div></div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Saved so far</div><input class="inp" id="g-sv" type="number" min="0" placeholder="0" style="width:100%"></div><div class="fld"><div class="fld-lb">Monthly saving</div><input class="inp" id="g-mo" type="number" min="0" placeholder="0" style="width:100%"></div></div>
+          <button type="button" class="sm-btn pr fw" id="ag-btn">Add goal</button>
+        </div>
+        <div class="ccard"><div class="ctitle">Your goals</div><div id="go-ll"><div style="font-size:12px;color:var(--tx2)">No goals yet.</div></div></div>
+      </div>
+
+      <!-- PROFILE -->
+      <div id="pg-profile" class="pg">
+        <div class="sec-ey">Profile</div><div class="sec-h">Your settings</div><div class="sec-s">Changes save to your account.</div>
+        <div class="ccard">
+          <div class="fld"><div class="fld-lb">Name <span class="req">*</span></div><input class="inp" id="p-nm" type="text" style="width:100%"><div class="ferr" id="p-err">Name is required.</div></div>
+          <div class="fld"><div class="fld-lb">Gender</div><div class="gbs"><button type="button" class="gb" id="pbm" onclick="pickGE('male')">Male</button><button type="button" class="gb" id="pbf" onclick="pickGE('female')">Female</button><button type="button" class="gb" id="pbo" onclick="pickGE('other')">Other</button></div></div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Currency</div><select class="sel" id="p-cur"><option value="PHP">PHP ₱</option><option value="USD">USD $</option><option value="SGD">SGD S$</option><option value="AUD">AUD A$</option><option value="GBP">GBP £</option><option value="EUR">EUR €</option></select></div><div class="fld"><div class="fld-lb">Lifestyle</div><select class="sel" id="p-lf"><option value="freelancer">Freelancer / VA</option><option value="employed">Employed</option><option value="student">Student</option><option value="business">Business owner</option><option value="other">Other</option></select></div></div>
+          <div class="fl2"><div class="fld"><div class="fld-lb">Work hrs/day</div><input class="inp" id="p-wk" type="number" min="0" max="20" step=".5" style="width:100%"></div><div class="fld"><div class="fld-lb">Sleep hrs/day</div><input class="inp" id="p-sl" type="number" min="3" max="12" step=".5" style="width:100%"></div></div>
+          <div class="fld"><div class="fld-lb">Personal time (hrs)</div><input class="inp" id="p-pe" type="number" min="0" max="10" step=".5" style="width:100%"></div>
+          <div class="barwrap" style="margin-bottom:12px"><div class="tbar" id="p-bar"></div><div class="bar-sm" id="p-bar-tx">—</div></div>
+          <button type="button" class="sm-btn pr fw" id="sp-btn">Save changes</button>
+        </div>
+        <div class="ccard" style="margin-top:12px">
+          <div class="ctitle">Theme</div>
+          <div style="font-size:12px;color:var(--tx2);margin-bottom:10px;font-weight:500">Pick your vibe. Saves automatically.</div>
+          <div class="pal-grid" id="pal-grid"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+const PALETTES={midnight:{name:'🖤 Midnight',swatches:['#0d0d0d','#111111','#22c55e','#f0ede8'],vars:{'--bg':'#0d0d0d','--bg2':'#111111','--bg3':'#1a1a1a','--bg4':'#222222','--bd':'#1f1f1f','--bd2':'#2a2a2a','--tx':'#f0ede8','--tx2':'#9ca3af','--tx3':'#6b7280','--ac':'#22c55e','--ac-tx':'#fff','--sh':'0 2px 16px rgba(0,0,0,.4)','--sh2':'0 6px 28px rgba(0,0,0,.6)','--ac-ring':'0 0 0 3px rgba(34,197,94,.18)'}},aurora:{name:'🌸 Aurora',swatches:['#fde8f0','#ecddf7','#c4a8e0','#3a2a4a'],vars:{'--bg':'#fde8f0','--bg2':'#ecddf7','--bg3':'#e5d4f2','--bg4':'#ddc8eb','--bd':'#ddc8eb','--bd2':'#c4a8e0','--tx':'#3a2a4a','--tx2':'#6d4c7a','--tx3':'#9b78a8','--ac':'#b07fd0','--ac-tx':'#fff','--sh':'0 2px 16px rgba(140,100,180,.12)','--sh2':'0 6px 28px rgba(140,100,180,.22)','--ac-ring':'0 0 0 3px rgba(176,127,208,.25)'}},ocean:{name:'🌊 Ocean',swatches:['#2c5f78','#2e6b8a','#98c4d0','#f0f8ff'],vars:{'--bg':'#2c5f78','--bg2':'#2e6b8a','--bg3':'#336e8e','--bg4':'#3a7a9e','--bd':'#3a7a9e','--bd2':'#4a8aae','--tx':'#f0f8ff','--tx2':'#b8d8e8','--tx3':'#88b8cc','--ac':'#98c4d0','--ac-tx':'#1a3a4a','--sh':'0 2px 16px rgba(0,40,80,.2)','--sh2':'0 6px 28px rgba(0,40,80,.35)','--ac-ring':'0 0 0 3px rgba(152,196,208,.28)'}},sunny:{name:'☀️ Sunny',swatches:['#fffde7','#fef9c3','#d97706','#1c1400'],vars:{'--bg':'#fffde7','--bg2':'#fef9c3','--bg3':'#fef3a0','--bg4':'#fde68a','--bd':'#fde68a','--bd2':'#fcd34d','--tx':'#1c1400','--tx2':'#6b5a08','--tx3':'#a88a12','--ac':'#d97706','--ac-tx':'#fff','--sh':'0 2px 16px rgba(180,140,0,.10)','--sh2':'0 6px 28px rgba(180,140,0,.18)','--ac-ring':'0 0 0 3px rgba(180,120,0,.14)'}},clean:{name:'🤍 Clean',swatches:['#f2f2ee','#ffffff','#4a5568','#222222'],vars:{'--bg':'#f2f2ee','--bg2':'#ffffff','--bg3':'#f5f5f2','--bg4':'#e8e8e4','--bd':'#e2e2de','--bd2':'#c8c8c4','--tx':'#222222','--tx2':'#4a5568','--tx3':'#718096','--ac':'#4a5568','--ac-tx':'#fff','--sh':'0 2px 16px rgba(0,0,0,.06)','--sh2':'0 6px 28px rgba(0,0,0,.12)','--ac-ring':'0 0 0 3px rgba(74,85,104,.18)'}}};
+let CUR_PAL='sunny';
+function applyPalette(key){const p=PALETTES[key]||PALETTES.sunny;const r=document.documentElement.style;Object.entries(p.vars).forEach(([k,v])=>r.setProperty(k,v));CUR_PAL=key;}
+function renderPalPicker(){const grid=document.getElementById('pal-grid');if(!grid)return;grid.innerHTML=Object.entries(PALETTES).map(([key,p])=>`<button type="button" class="pal-btn${CUR_PAL===key?' on':''}" onclick="pickPalette('${key}')"><div class="pal-preview">${p.swatches.map(c=>`<div class="pal-swatch" style="background:${c}"></div>`).join('')}</div><div class="pal-name">${p.name}</div><div class="pal-check">✓</div></button>`).join('');}
+async function pickPalette(key){applyPalette(key);renderPalPicker();if(!USER)return;sync('sy');const{error}=await sb.from('profiles').update({palette:key}).eq('id',USER.id);if(!error){if(PROF)PROF.palette=key;sync('ok');}else sync('er');}
+const SURL='https://stlduemvzndyytlgbwxw.supabase.co';
+const SKEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InN0bGR1ZW12em5keXl0bGdid3h3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU1NTM3NTcsImV4cCI6MjA5MTEyOTc1N30.YKKoEIayh01RJZ54EPfi0fgGJO6KzSwVqT6XLY2ksHE';
+const sb=supabase.createClient(SURL,SKEY);
+let USER=null,PROF=null,INGS=[],INC=[],EXP=[],DEBTS=[],GOALS=[],CLOG=[],CMINS=0;
+let obG='male',pG='male';
+const IDATA={eggs:{name:'Eggs',unit:'pcs',cal:78,fact:'High-quality protein (6g each), vitamin D, B12 & choline.',nuts:{p:6,c:1,f:5,fi:0}},rice:{name:'Rice (cooked)',unit:'cups',cal:206,fact:'Complex carb for sustained energy. Good base for almost anything.',nuts:{p:4,c:45,f:0,fi:2}},chicken:{name:'Chicken breast',unit:'pcs (100g)',cal:165,fact:'Lean protein powerhouse — 31g protein per 100g, low fat.',nuts:{p:31,c:0,f:4,fi:0}},tomato:{name:'Tomatoes',unit:'pcs',cal:22,fact:'Rich in lycopene, vitamin C & potassium.',nuts:{p:1,c:4,f:0,fi:1}},spinach:{name:'Spinach',unit:'cups',cal:7,fact:'Iron, calcium, vitamin K & folate.',nuts:{p:1,c:1,f:0,fi:1}},garlic:{name:'Garlic',unit:'cloves',cal:4,fact:'Allicin — antimicrobial & heart-protective.',nuts:{p:0,c:1,f:0,fi:0}},onion:{name:'Onion',unit:'pcs',cal:44,fact:'Quercetin & prebiotic fiber for gut health.',nuts:{p:1,c:9,f:0,fi:2}},pasta:{name:'Pasta',unit:'cups (dry)',cal:338,fact:'Good carb. Whole wheat doubles the fiber.',nuts:{p:7,c:43,f:1,fi:3}},potato:{name:'Potato',unit:'pcs (medium)',cal:163,fact:'More potassium than a banana. Leave skin on.',nuts:{p:3,c:37,f:0,fi:4}},bread:{name:'Bread',unit:'slices',cal:79,fact:'Quick carbs. Whole grain has fiber & B vitamins.',nuts:{p:3,c:15,f:1,fi:1}},beans:{name:'Beans (cooked)',unit:'cups',cal:227,fact:'Best plant-based protein + fiber combo.',nuts:{p:15,c:40,f:1,fi:15}},cheese:{name:'Cheese',unit:'slices (30g)',cal:113,fact:'Calcium, protein & vitamin K2.',nuts:{p:7,c:1,f:9,fi:0}},broccoli:{name:'Broccoli',unit:'cups',cal:31,fact:'Sulforaphane — studied anti-cancer compound.',nuts:{p:3,c:6,f:0,fi:2}},banana:{name:'Banana',unit:'pcs',cal:105,fact:'Fast energy, potassium, vitamin B6.',nuts:{p:1,c:27,f:0,fi:3}},oats:{name:'Oats',unit:'cups (dry)',cal:307,fact:'Beta-glucan fiber. Steady blood sugar.',nuts:{p:5,c:27,f:3,fi:4}}};
+const MEALS=[{id:'egg-toast',name:'Egg on toast',needs:['eggs','bread'],time:7,health:3,badge:'easy',desc:'Quick, balanced, filling. 7 minutes.',note:'~235 kcal. Protein + carbs.',recipe:[{s:'Toast bread golden.',t:2},{s:'Cook eggs — scrambled or fried.',t:3},{s:'Egg on toast. Season.',t:0}]},{id:'fried-rice',name:'Egg fried rice',needs:['rice','eggs'],time:12,health:4,badge:'lazy',desc:'Classic. Day-old rice works best.',note:'~380 kcal.',recipe:[{s:'Heat wok on high. Add oil.',t:1},{s:'Scramble eggs, push aside.',t:2},{s:'Add cold rice, stir-fry 3–4 min.',t:4},{s:'Season with soy sauce.',t:0}]},{id:'chicken',name:'Pan chicken',needs:['chicken'],time:18,health:5,badge:'healthy',desc:'Highest protein. Best meal here.',note:'165 kcal/100g, 31g protein.',recipe:[{s:'Season with salt, pepper.',t:1},{s:'Hot pan. Sear 6 min without moving.',t:6},{s:'Flip. Cook 5–6 min more.',t:6},{s:'Rest 3 min.',t:3}]},{id:'tomato-egg',name:'Tomato scrambled eggs',needs:['tomato','eggs'],time:8,health:4,badge:'easy',desc:'Simple, nutritious, delicious.',note:'~200 kcal.',recipe:[{s:'Beat eggs. Dice tomatoes.',t:1},{s:'Scramble eggs half-set, remove.',t:2},{s:'Fry tomatoes 2 min. Add eggs back.',t:2},{s:'Stir gently.',t:1}]},{id:'pasta-tom',name:'Tomato pasta',needs:['pasta','tomato'],time:18,health:3,badge:'lazy',desc:'A classic. Comforting, filling.',note:'~400 kcal.',recipe:[{s:'Boil pasta 8–10 min.',t:10},{s:'Fry tomatoes in oil 5 min.',t:5},{s:'Season, drain pasta, toss.',t:2}]},{id:'beans-rice',name:'Beans & rice',needs:['beans','rice'],time:10,health:5,badge:'easy',desc:'Complete protein. Best value meal.',note:'~430 kcal, 17g fiber.',recipe:[{s:'Heat drained beans.',t:3},{s:'Season.',t:1},{s:'Serve over rice.',t:0}]},{id:'oat-bowl',name:'Oat bowl',needs:['oats'],time:7,health:5,badge:'healthy',desc:'Healthiest meal. 7 minutes.',note:'~307 kcal.',recipe:[{s:'Oats + 2x water, medium heat.',t:0},{s:'Stir until thick, 5 min.',t:5},{s:'Salt, sweeten if desired.',t:0}]},{id:'banana-oat',name:'Banana oat porridge',needs:['oats','banana'],time:8,health:5,badge:'healthy',desc:'Natural sweetness, no sugar needed.',note:'~412 kcal.',recipe:[{s:'Cook oats with 2x water, 5 min.',t:5},{s:'Top with sliced banana.',t:1},{s:'Add cinnamon.',t:0}]},{id:'potato',name:'Pan-fried potato',needs:['potato'],time:18,health:3,badge:'lazy',desc:'Crispy outside, soft inside.',note:'~163 kcal.',recipe:[{s:'Dice potato small.',t:2},{s:'Boil 5 min. Drain.',t:5},{s:'Pan + oil. No stir 4 min.',t:5},{s:'Toss, cook 3 more min.',t:3}]},{id:'broc-egg',name:'Broccoli & egg stir-fry',needs:['broccoli','eggs'],time:10,health:5,badge:'healthy',desc:'Short on time, packed with nutrition.',note:'~187 kcal.',recipe:[{s:'Beat eggs. Blanch broccoli 2 min.',t:2},{s:'Stir-fry broccoli 2 min.',t:2},{s:'Add eggs, scramble gently.',t:2}]},{id:'spin-egg',name:'Spinach egg scramble',needs:['spinach','eggs'],time:7,health:5,badge:'healthy',desc:'Iron + protein in 7 minutes.',note:'~163 kcal.',recipe:[{s:'Spinach in oiled pan, wilts 60s.',t:1},{s:'Add beaten eggs. Scramble.',t:2},{s:'Season immediately.',t:0}]},{id:'cheese-toast',name:'Cheese on toast',needs:['cheese','bread'],time:5,health:2,badge:'easy',desc:'Five minutes.',note:'~192 kcal.',recipe:[{s:'Toast bread.',t:2},{s:'Cheese on hot toast.',t:0}]},{id:'garlic-pasta',name:'Garlic pasta',needs:['pasta','garlic'],time:15,health:3,badge:'lazy',desc:'Aglio e olio.',note:'~350 kcal.',recipe:[{s:'Boil pasta 8–10 min.',t:10},{s:'Toast garlic in oil on low.',t:4},{s:'Toss pasta with garlic oil.',t:1}]}];
+const GEN={male:{av:'👨',bg:'rgba(96,165,250,.18)',bro:'bro',king:'king',gr:n=>['Hey '+n+', what are we cooking?','Welcome back '+n+'. Fridge judged you.'],em:n=>['Empty fridge bro. Peak bachelor energy.',''+n+'\'s fridge is empty. At least you\'re here.'],fw:n=>['Two ingredients bro. We\'ll work with it.'],gd:n=>[''+n+' stocked up. King behavior.'],rt:(n,d)=>n+'! '+d+' days bro. Please say it wasn\'t all takeout.',fG:n=>'Income beats expenses '+n+'. King behavior.',fB:n=>'Spending more than you earn bro. Not the flex.',fE:n=>'Breaking even '+n+'. One bill away from noodles.',dN:n=>'No debts! Disciplined or hasn\'t checked, '+n+'.',dO:n=>'Making progress king.',dH:n=>'Debt eating your income bro. Pick a strategy.',gN:n=>'No goals '+n+'? A man without goals vibes into debt.',gS:n=>'Goals on the board. Fund them, king.',tO:n=>'Schedule solid '+n+'.',tF:n=>'Tight day bro. Keep meals fast.'},female:{av:'👩',bg:'rgba(244,114,182,.18)',bro:'sis',king:'queen',gr:n=>['Hey '+n+'! Let\'s see the fridge.','Welcome back '+n+'. Fridge missed you.'],em:n=>['Empty fridge sis. You deserve better than delivery.','Nothing in there '+n+'. A queen needs real food.'],fw:n=>['A little low '+n+'. We\'ll work with it.'],gd:n=>[''+n+' came prepared! Queen energy!'],rt:(n,d)=>n+'! '+d+' days sis. Hope it wasn\'t all takeout.',fG:n=>'Money working for you '+n+'. Queen behavior.',fB:n=>'Spending more than you earn sis. Let\'s fix this.',fE:n=>'Breaking even '+n+'. Build a buffer.',dN:n=>'No debts! '+n+' is crushing it.',dO:n=>'Making progress queen.',dH:n=>'Payments too heavy sis. Get strategic.',gN:n=>'No goals '+n+'? A queen always builds toward something.',gS:n=>'Goals set '+n+'. Fund them, queen.',tO:n=>'Good balance today '+n+'.',tF:n=>'Busy day sis. Keep meals quick.'},other:{av:'🧑',bg:'rgba(34,197,94,.18)',bro:'fam',king:'legend',gr:n=>['Hey '+n+'! What\'s going in the fridge?','Welcome back '+n+'.'],em:n=>['Empty fridge fam. Let\'s change that.','Nothing yet '+n+'. Add something.'],fw:n=>['Just a couple things '+n+'. We\'ll make it work.'],gd:n=>[''+n+' came prepared! Legend behavior.'],rt:(n,d)=>n+'! '+d+' days fam. Hope it wasn\'t all takeout.',fG:n=>'Income beats expenses '+n+'. Legend.',fB:n=>'Spending more than you earn fam.',fE:n=>'Breaking even '+n+'. Build a buffer.',dN:n=>'No debts '+n+'!',dO:n=>'Making progress legend.',dH:n=>'Heavy load fam. Pick a strategy.',gN:n=>'No goals '+n+'. Even small goals help.',gS:n=>'Goals set legend. Fund them '+n+'.',tO:n=>'Day balanced '+n+'.',tF:n=>'Tight schedule fam. Keep meals quick.'}};
+const G=()=>GEN[PROF?.gender]||GEN.other;
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const sym=()=>({PHP:'₱',USD:'$',SGD:'S$',AUD:'A$',GBP:'£',EUR:'€'})[PROF?.currency||'PHP']||'$';
+const fmt=n=>sym()+Math.round(n).toLocaleString();
+const toMo=(a,f)=>f==='daily'?a*30:f==='weekly'?a*4.33:f==='oneoff'?a/12:a;
+const totalInc=()=>INC.reduce((s,x)=>s+toMo(x.amount,x.freq),0);
+const totalExp=()=>EXP.reduce((s,x)=>s+toMo(x.amount,x.freq),0);
+const today=()=>new Date().toISOString().slice(0,10);
+const cookH=()=>CMINS/60;
+const freeH=()=>Math.max(0,24-(PROF?.work_hours||8)-(PROF?.sleep_hours||7)-(PROF?.personal_hours||2)-cookH());
+function sync(s){const d=document.getElementById('sdot'),t=document.getElementById('stx');if(!d||!t)return;d.className='sdot'+(s==='sy'?' sy':s==='er'?' er':'');t.textContent=s==='sy'?'Saving...':s==='er'?'Error':'Synced';}
+function renderBar(w,sl,p,c,id){const fr=Math.max(0,24-w-sl-p-c);const sg=[{h:w,bg:'#3b82f6'},{h:sl,bg:'#7c3aed'},{h:p,bg:'#ec4899'},{h:c,bg:'#f59e0b'},{h:fr,bg:'#22c55e'}];const el=document.getElementById(id);if(!el)return;el.innerHTML=sg.filter(s=>s.h>0).map(s=>`<div class="tbs" style="flex:${Math.round(s.h*10)};background:${s.bg}"></div>`).join('');}
+function switchTab(t){['login','signup'].forEach(x=>{document.getElementById('t-'+x).className='auth-tab'+(x===t?' on':'');document.getElementById('f-'+x).className='auth-form'+(x===t?'':' hide');});document.getElementById('a-err').style.display='none';document.getElementById('a-msg').style.display='none';}
+function showErr(m){const e=document.getElementById('a-err');e.textContent=m;e.style.display='block';document.getElementById('a-msg').style.display='none';}
+function showMsg(m){const e=document.getElementById('a-msg');e.textContent=m;e.style.display='block';document.getElementById('a-err').style.display='none';}
+async function doLogin(e){e.preventDefault();const b=document.getElementById('l-btn');b.disabled=true;b.textContent='Signing in...';const{error}=await sb.auth.signInWithPassword({email:document.getElementById('l-em').value.trim(),password:document.getElementById('l-pw').value});if(error){showErr(error.message);b.disabled=false;b.textContent='Sign in';}}
+async function doSignup(e){e.preventDefault();const b=document.getElementById('s-btn');b.disabled=true;b.textContent='Creating...';const nm=document.getElementById('s-nm').value.trim();if(!nm){showErr('Name is required.');b.disabled=false;b.textContent='Create account';return;}const{data,error}=await sb.auth.signUp({email:document.getElementById('s-em').value.trim(),password:document.getElementById('s-pw').value,options:{data:{name:nm}}});if(error){showErr(error.message);b.disabled=false;b.textContent='Create account';}else if(data?.session){b.textContent='Done!';}else{showMsg('Account created! Sign in to get started.');b.disabled=false;b.textContent='Create account';switchTab('login');}}
+async function doSignOut(){await sb.auth.signOut();USER=null;PROF=null;document.getElementById('app').style.display='none';document.getElementById('auth-pg').style.display='flex';}
+async function loadAll(){if(!USER)return;sync('sy');try{const[pr,ig,ic,ex,db,gl,cl]=await Promise.all([sb.from('profiles').select('*').eq('id',USER.id).single(),sb.from('ingredients').select('*').eq('user_id',USER.id),sb.from('income').select('*').eq('user_id',USER.id),sb.from('expenses').select('*').eq('user_id',USER.id),sb.from('debts').select('*').eq('user_id',USER.id),sb.from('goals').select('*').eq('user_id',USER.id),sb.from('cook_log').select('*').eq('user_id',USER.id).eq('log_date',today())]);PROF=pr.data;INGS=ig.data||[];INC=ic.data||[];EXP=ex.data||[];DEBTS=db.data||[];GOALS=gl.data||[];CLOG=cl.data||[];CMINS=CLOG.reduce((s,l)=>s+l.cook_mins,0);if(PROF?.palette)applyPalette(PROF.palette);sync('ok');}catch(e){sync('er');}}
+function pickG(g){obG=g;['m','f','o'].forEach(x=>{const e=document.getElementById('gb'+x);if(e)e.className='gb';});const e=document.getElementById('gb'+g[0]);if(e)e.className='gb '+(g==='male'?'gm':g==='female'?'gf':'go');}
+function pickGE(g){pG=g;PROF.gender=g;['m','f','o'].forEach(x=>{const e=document.getElementById('pb'+x);if(e)e.className='gb';});const e=document.getElementById('pb'+g[0]);if(e)e.className='gb '+(g==='male'?'gm':g==='female'?'gf':'go');}
+function goObStep(n){[1,2,3].forEach(i=>{const s=document.getElementById('os'+i);if(s)s.className='step'+(i===n?' on':'');const d=document.getElementById('d'+i);if(d)d.className='dot'+(i===n?' on':'');});}
+function upObBar(){const w=parseFloat(document.getElementById('ob-wk')?.value)||0,sl=parseFloat(document.getElementById('ob-sl')?.value)||0,p=parseFloat(document.getElementById('ob-pe')?.value)||0,fr=Math.max(0,24-w-sl-p);renderBar(w,sl,p,0,'ob-bar');const e=document.getElementById('ob-bar-tx');if(e)e.textContent=`Work ${w}h · Sleep ${sl}h · Personal ${p}h · Free ~${fr.toFixed(1)}h`;}
+function upPBar(){const w=parseFloat(document.getElementById('p-wk')?.value)||0,sl=parseFloat(document.getElementById('p-sl')?.value)||0,p=parseFloat(document.getElementById('p-pe')?.value)||0,fr=Math.max(0,24-w-sl-p);renderBar(w,sl,p,0,'p-bar');const e=document.getElementById('p-bar-tx');if(e)e.textContent=`Work ${w}h · Sleep ${sl}h · Personal ${p}h · Free ~${fr.toFixed(1)}h`;}
+async function finishOnboard(){const nm=(document.getElementById('ob-nm')?.value||'').trim(),w=parseFloat(document.getElementById('ob-wk')?.value)||8,sl=parseFloat(document.getElementById('ob-sl')?.value)||7,p=parseFloat(document.getElementById('ob-pe')?.value)||2;sync('sy');const{data,error}=await sb.from('profiles').upsert({id:USER.id,name:nm,gender:obG,currency:document.getElementById('ob-cur')?.value||'PHP',lifestyle:document.getElementById('ob-lf')?.value||'other',work_hours:w,sleep_hours:sl,personal_hours:p,last_visit:new Date().toISOString()}).select().single();if(!error){PROF=data;sync('ok');goP('pg-main');}else{sync('er');alert('Error: '+error.message);}}
+const PMAP={'pg-main':'sn-main','pg-meals':'sn-meals','pg-recipe':'sn-meals','pg-time':'sn-time','pg-finance':'sn-finance','pg-debts':'sn-debts','pg-goals':'sn-goals','pg-profile':'sn-profile','pg-onboard':'sn-main'};
+const TMAP={'pg-main':0,'pg-meals':0,'pg-recipe':0,'pg-time':1,'pg-finance':2,'pg-debts':3,'pg-goals':4,'pg-profile':5};
+function goP(id){document.querySelectorAll('.main .pg').forEach(p=>p.className='pg');const pg=document.getElementById(id);if(pg)pg.className='pg on';document.querySelectorAll('.snav').forEach(b=>b.classList.remove('on'));const s=document.getElementById(PMAP[id]);if(s)s.classList.add('on');document.querySelectorAll('.tnav').forEach((b,i)=>b.classList.toggle('on',i===TMAP[id]));if(id==='pg-main')refreshMain();if(id==='pg-meals')refreshMeals();if(id==='pg-time')refreshTime();if(id==='pg-finance')refreshFinance();if(id==='pg-debts')refreshDebts();if(id==='pg-goals')refreshGoals();if(id==='pg-profile')loadPEdit();}
+async function addIng(){const inp=document.getElementById('ii'),raw=(inp.value||'').trim().toLowerCase();if(!raw)return;const keys=Object.keys(IDATA);let key=null;for(const k of keys){if(raw.includes(k)||k.includes(raw)||IDATA[k].name.toLowerCase().includes(raw)){key=k;break;}}if(INGS.find(x=>(x.key&&x.key===key&&key)||(!x.key&&x.raw===raw))){inp.value='';return;}sync('sy');const{data,error}=await sb.from('ingredients').insert({user_id:USER.id,key,raw,qty:1,unit:key?IDATA[key].unit:'units'}).select().single();if(!error){INGS.push(data);sync('ok');}else sync('er');inp.value='';renderIngList();}
+async function removeIng(id){sync('sy');await sb.from('ingredients').delete().eq('id',id);INGS=INGS.filter(x=>x.id!==id);sync('ok');renderIngList();}
+async function updateIngQty(id,qty){await sb.from('ingredients').update({qty:parseFloat(qty)||1}).eq('id',id);const i=INGS.find(x=>x.id===id);if(i)i.qty=parseFloat(qty)||1;}
+async function updateIngUnit(id,unit){await sb.from('ingredients').update({unit}).eq('id',id);const i=INGS.find(x=>x.id===id);if(i)i.unit=unit;}
+function renderIngList(){const el=document.getElementById('il');if(!el)return;const sf=document.getElementById('sn-fi');if(!INGS.length){el.innerHTML='<div style="font-size:12px;color:var(--tx2)">No ingredients yet.</div>';if(sf)sf.textContent='Add ingredients';return;}el.innerHTML=INGS.map(ing=>{const d=ing.key?IDATA[ing.key]:null,calT=d?Math.round(d.cal*(parseFloat(ing.qty)||1)):0,uA=d?[d.unit,'g','oz','servings']:['units','g','oz','cups','pcs'],uO=uA.map(u=>`<option value="${u}"${u===ing.unit?' selected':''}>${u}</option>`).join(''),nuts=d?`<div class="ic-nuts"><span class="pill g">P ${d.nuts.p}g</span><span class="pill a">C ${d.nuts.c}g</span><span class="pill gr">F ${d.nuts.f}g</span><span class="pill p">${d.cal} kcal/${ing.unit}</span></div>`:'';return`<div class="ic"><div class="ic-top"><span class="ic-nm">${d?d.name:ing.raw.charAt(0).toUpperCase()+ing.raw.slice(1)}</span><button type="button" class="ic-x" onclick="removeIng('${ing.id}')">×</button></div><div class="ic-fc">${d?d.fact:'Custom ingredient.'}</div>${nuts}<div class="ic-qr"><span class="ic-ql">How much?</span><input class="qn" type="number" min=".5" step=".5" value="${ing.qty}" onchange="updateIngQty('${ing.id}',this.value)"><select class="qu" onchange="updateIngUnit('${ing.id}',this.value)">${uO}</select>${d?`<span class="qc">≈ <b>${calT}</b> kcal</span>`:''}</div></div>`;}).join('');if(sf)sf.textContent=`${INGS.length} ingredient${INGS.length!==1?'s':''}`;}
+function calcCals(m,keys){let tot=0;const bd=[];(m.needs||[]).forEach(k=>{if(keys.includes(k)&&IDATA[k]){const i=INGS.find(x=>x.key===k),qty=i?parseFloat(i.qty)||1:1,cal=Math.round(IDATA[k].cal*qty);tot+=cal;bd.push({name:IDATA[k].name,cal});}});return{tot:Math.round(tot),bd};}
+function refreshMeals(){const fr=freeH(),g=G(),n=PROF?.name||'Slacker',keys=INGS.filter(x=>x.key).map(x=>x.key),matched=MEALS.filter(m=>(m.needs||[]).every(n2=>keys.includes(n2))).sort((a,b)=>b.health-a.health);let face,speech;if(!keys.length){face='😑';speech=pick(g.em(n));}else if(!matched.length){face='🤔';speech='You\'ve got ingredients but none make a full meal. Try adding rice, eggs, pasta, or chicken.';}else if(matched.some(m=>m.health>=5)){face='😌';speech=pick(g.gd(n));}else{face='🤨';speech='We can work with this.';}document.getElementById('mff').textContent=face;document.getElementById('mfm').textContent=speech;document.getElementById('mlh').textContent=matched.length?`${matched.length} meal${matched.length!==1?'s':''} you can make`:'Nothing matches yet';document.getElementById('mls').textContent=`Based only on your fridge · ${fr.toFixed(1)}h free today`;if(!matched.length){const miss=[];MEALS.forEach(m=>{(m.needs||[]).forEach(k2=>{if(!keys.includes(k2)&&!miss.includes(k2))miss.push(k2);});});document.getElementById('mll').innerHTML=`<div style="text-align:center;padding:24px 14px;color:var(--tx2);font-size:13px"><div style="font-size:34px;margin-bottom:8px">🧐</div><div style="font-weight:700;color:var(--tx);margin-bottom:5px">No complete meals yet</div><div>Add one of these:</div><div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:5px;justify-content:center">${miss.slice(0,5).map(k2=>`<span class="pill a">${IDATA[k2]?IDATA[k2].name:k2}</span>`).join('')}</div></div>`;return;}const bm={easy:'g',lazy:'a',healthy:'p'},bl={easy:'easy',lazy:'lazy',healthy:'healthy'};document.getElementById('mll').innerHTML=matched.map(m=>{const{tot}=calcCals(m,keys),fm=fr*60,tc=fr===0?'gr':m.time<=fm?'g':m.time<=fm*1.3?'a':'r',tm=fr===0?`${m.time} min`:(m.time<=fm?`${m.time} min ✓`:`${m.time} min`);return`<div class="mc" onclick="showRecipe('${m.id}')"><div class="mc-top"><div class="mc-nm">${m.name}</div><span class="pill ${bm[m.badge]||'a'}">${bl[m.badge]||m.badge}</span></div><div class="mc-meta"><span class="pill ${tc}">${tm}</span><span class="pill p">~${tot} kcal</span><span class="pill g">Health ${m.health}/5</span></div><div class="mc-desc">${m.desc}</div><div class="mc-cta">Tap for recipe →</div></div>`;}).join('');}
+function showRecipe(id){const m=MEALS.find(x=>x.id===id);if(!m)return;const keys=INGS.filter(x=>x.key).map(x=>x.key),{tot,bd}=calcCals(m,keys),fr=freeH(),fm=fr*60,tn=fr===0?'Add schedule to see time fit.':(m.time<=fm?`You have ${fr.toFixed(1)}h free — this ${m.time}-min meal fits.`:`${m.time} min needed, ~${Math.round(fm)} min available.`),have=(m.needs||[]).filter(k=>keys.includes(k)).map(k=>IDATA[k]?.name||k),cbh=bd.map((b,i)=>{const cols=['#22c55e','#3b82f6','#f59e0b','#ec4899'],w=Math.max(Math.round(b.cal/Math.max(tot,1)*100),5);return`<div class="cs" style="flex:${w};background:${cols[i%cols.length]}"></div>`;}).join(''),cbb=bd.map(b=>`<div class="irow"><span style="color:var(--tx2)">${b.name}</span><span style="color:var(--pu)">${b.cal} kcal</span></div>`).join(''),steps=m.recipe.map((rx,i)=>`<div class="rstep"><span class="rsn">${i+1}</span><div>${rx.s}${rx.t>0?`<span class="rst">(~${rx.t} min)</span>`:''}</div></div>`).join('');document.getElementById('ro').innerHTML=`<div class="sec-ey">Recipe</div><div class="sec-h">${m.name}</div><div class="sec-s">${m.note}</div><div class="fhero"><span class="fhero-em">⏱</span><div class="fhero-mg">${tn}</div></div><div class="mets m3"><div class="met"><div class="met-l">Time</div><div class="met-v">${m.time} min</div></div><div class="met p"><div class="met-l">Calories</div><div class="met-v">~${tot}</div></div><div class="met g"><div class="met-l">Health</div><div class="met-v">${m.health}/5</div></div></div><div class="ccard" style="margin-bottom:8px"><div class="ctitle">Calorie breakdown</div><div class="calbar">${cbh}</div>${cbb}<div style="font-size:10px;color:var(--tx3);margin-top:4px">Approximate.</div></div><div class="ccard" style="margin-bottom:8px"><div class="ctitle">Ingredients you have</div><div style="font-size:13px;color:var(--gn)">${have.join(', ')}</div></div><div class="ccard"><div class="ctitle">Step by step</div>${steps}</div><button type="button" class="sm-btn pr fw" id="made-btn" style="margin-top:12px">I made this! 🍽️</button>`;document.getElementById('made-btn').onclick=()=>markMade(m.time,m.name,m.id);goP('pg-recipe');}
+async function markMade(mins,name,meal_id){sync('sy');const{error}=await sb.from('cook_log').insert({user_id:USER.id,meal_name:name,meal_id,cook_mins:mins,log_date:today()});if(!error){CLOG.push({meal_name:name,cook_mins:mins});CMINS+=mins;await sb.from('profiles').update({meals_prepped:(PROF.meals_prepped||0)+1}).eq('id',USER.id);PROF.meals_prepped=(PROF.meals_prepped||0)+1;sync('ok');}const g=G(),nf=freeH(),ro=document.getElementById('ro'),b=document.createElement('div');b.className='alg';b.innerHTML=`<b>${name} logged!</b> ${mins} min used. ~${nf.toFixed(1)}h free today. ${PROF.meals_prepped} meal${PROF.meals_prepped>1?'s':''} cooked, ${g.king}.`;ro.insertBefore(b,ro.firstChild);const btn=document.getElementById('made-btn');if(btn){btn.disabled=true;btn.textContent='Logged ✓';btn.style.opacity='.5';}}
+function refreshMain(){if(!PROF)return;const g=G(),n=PROF.name||'Slacker',ni=INGS.length;let face,speech,tip;face='😌';speech=pick(g.gr(n));tip='Tap "Show me what I can make" ↓';if(ni===0){face='😑';speech=pick(g.em(n));tip='Add ingredients above.';}else if(ni<=2){face='🤨';speech=pick(g.fw(n));tip='Add one more for a real meal.';}document.getElementById('ff').textContent=face;document.getElementById('fs').textContent=speech;document.getElementById('fm').textContent=tip;const av=document.getElementById('sb-av');if(av){av.textContent=g.av;av.style.background=g.bg;}document.getElementById('sb-nm').textContent=n;document.getElementById('sb-mt').textContent=(PROF.gender||'—')+' · '+(PROF.lifestyle||'—');const ch=cookH(),fr=freeH();document.getElementById('mw').textContent=(PROF.work_hours||8)+'h';document.getElementById('ms').textContent=(PROF.sleep_hours||7)+'h';document.getElementById('mc').textContent=ch.toFixed(1)+'h';const fEl=document.getElementById('mf');if(fEl){fEl.textContent=fr.toFixed(1)+'h';fEl.closest('.met').className='met '+(fr<1?'r':fr<2?'a':'g');}renderBar(PROF.work_hours||8,PROF.sleep_hours||7,PROF.personal_hours||2,ch,'mb');document.getElementById('mb-tx').textContent=`Work ${PROF.work_hours||8}h · Sleep ${PROF.sleep_hours||7}h · Personal ${PROF.personal_hours||2}h · Cooking ${ch.toFixed(1)}h · Free ${fr.toFixed(1)}h`;const net=totalInc()-totalExp();document.getElementById('m-ts').textContent=`${fr.toFixed(1)}h free today`;document.getElementById('m-fs').textContent=INC.length?`Net ${fmt(net)}/mo`:'Add your income';document.getElementById('m-ds').textContent=DEBTS.length?`${DEBTS.length} debt${DEBTS.length>1?'s':''} tracked`:'No debts tracked';document.getElementById('m-gs').textContent=GOALS.length?`${GOALS.length} goal${GOALS.length>1?'s':''} active`:'No goals yet';document.getElementById('sn-ti').textContent=`${fr.toFixed(1)}h free`;document.getElementById('sn-fi2').textContent=INC.length?`Net ${fmt(net)}/mo`:'Add income';document.getElementById('sn-di').textContent=DEBTS.length?`${DEBTS.length} debt${DEBTS.length>1?'s':''}`:' —';document.getElementById('sn-gi').textContent=GOALS.length?`${GOALS.length} active`:' —';renderIngList();}
+function refreshTime(){if(!PROF)return;const g=G(),ch=cookH(),fr=freeH();document.getElementById('tw').textContent=(PROF.work_hours||8)+'h';document.getElementById('tsl').textContent=(PROF.sleep_hours||7)+'h';document.getElementById('tc').textContent=ch.toFixed(1)+'h';const fEl=document.getElementById('tf');if(fEl){fEl.textContent=fr.toFixed(1)+'h';fEl.style.color=fr<1?'var(--rd)':fr<2?'var(--am)':'var(--gn)';}renderBar(PROF.work_hours||8,PROF.sleep_hours||7,PROF.personal_hours||2,ch,'tb');document.getElementById('tb-tx').textContent=`Work ${PROF.work_hours||8}h · Sleep ${PROF.sleep_hours||7}h · Personal ${PROF.personal_hours||2}h · Cooking ${ch.toFixed(1)}h · Free ${fr.toFixed(1)}h = 24h`;document.getElementById('tr').textContent=fr<1?g.tF(PROF.name):g.tO(PROF.name);document.getElementById('th').textContent=`${PROF.name}'s day`;document.getElementById('ts-s').textContent=`24 hours. Every one accounted for, ${g.bro}.`;document.getElementById('cl').innerHTML=CLOG.length?CLOG.map(l=>`<div class="irow"><span style="font-weight:700;color:var(--tx)">${l.meal_name}</span><span style="color:var(--am)">${l.cook_mins} min</span></div>`).join(''):'<div style="font-size:12px;color:var(--tx2)">No meals cooked today.</div>';}
+function refreshFinance(){if(!PROF)return;const g=G(),inc=totalInc(),exp=totalExp(),net=inc-exp;document.getElementById('fi-i').textContent=fmt(inc);document.getElementById('fi-e').textContent=fmt(exp);const nEl=document.getElementById('fi-n');if(nEl){nEl.textContent=fmt(net);nEl.style.color=net>0?'var(--gn)':net===0?'var(--am)':'var(--rd)';}document.getElementById('fi-r').textContent=net>0?g.fG(PROF.name):net===0?g.fE(PROF.name):g.fB(PROF.name);document.getElementById('fi-s').textContent=`The numbers don't lie, ${g.bro}.`;const all=[...INC.map(x=>({...x,kind:'inc'})),...EXP.map(x=>({...x,kind:'exp'}))];document.getElementById('fi-ll').innerHTML=all.length?all.map(x=>`<div class="irow"><div><span style="font-weight:700;color:var(--tx)">${x.kind==='inc'?x.source:x.description}</span> <span class="pill ${x.kind==='inc'?'g':'r'}">${x.kind==='inc'?'income':'expense'}</span></div><span style="color:var(--tx2)">${fmt(x.amount)} <span style="font-size:10px;color:var(--tx3)">${x.freq}</span></span></div>`).join(''):'<div style="font-size:12px;color:var(--tx2)">Nothing yet.</div>';}
+async function addIncome(){const src=(document.getElementById('i-src').value||'').trim(),amt=parseFloat(document.getElementById('i-amt').value)||0,freq=document.getElementById('i-freq').value;if(!src||amt<=0)return;sync('sy');const{data,error}=await sb.from('income').insert({user_id:USER.id,source:src,amount:amt,freq}).select().single();if(!error){INC.push(data);sync('ok');refreshFinance();}else sync('er');document.getElementById('i-src').value='';document.getElementById('i-amt').value='';}
+async function addExpense(){const desc=(document.getElementById('e-desc').value||'').trim(),amt=parseFloat(document.getElementById('e-amt').value)||0,cat=document.getElementById('e-cat').value,freq=document.getElementById('e-freq').value;if(!desc||amt<=0)return;sync('sy');const{data,error}=await sb.from('expenses').insert({user_id:USER.id,description:desc,amount:amt,category:cat,freq}).select().single();if(!error){EXP.push(data);sync('ok');refreshFinance();}else sync('er');document.getElementById('e-desc').value='';document.getElementById('e-amt').value='';}
+function refreshDebts(){if(!PROF)return;const g=G(),tot=DEBTS.reduce((s,d)=>s+d.owed,0),mon=DEBTS.reduce((s,d)=>s+(d.monthly_payment||0),0);document.getElementById('dt-t').textContent=fmt(tot);document.getElementById('dt-m').textContent=fmt(mon);document.getElementById('dt-r').textContent=DEBTS.length===0?g.dN(PROF.name):mon/Math.max(totalInc(),1)>0.4?g.dH(PROF.name):g.dO(PROF.name);document.getElementById('dt-s').textContent=`Face it. Name it. Destroy it, ${g.king}.`;document.getElementById('dt-ll').innerHTML=DEBTS.length?DEBTS.map(d=>{const mos=d.monthly_payment>0?Math.ceil(d.owed/d.monthly_payment):null,pct=Math.min(100,d.monthly_payment>0?Math.round(Math.min(d.monthly_payment*6,d.owed)/d.owed*100):5);return`<div style="margin-bottom:12px"><div class="irow" style="border:none;padding-bottom:2px"><div><span style="font-weight:700;color:var(--tx)">${d.name}</span>${d.interest_rate>0?` <span class="pill r">${d.interest_rate}%</span>`:''}</div><div style="display:flex;align-items:center;gap:6px"><span style="color:var(--rd)">${fmt(d.owed)}</span><button type="button" onclick="removeDebt('${d.id}')" style="background:none;border:none;color:var(--tx3);font-size:16px;cursor:pointer;padding:2px 5px">×</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:2px">${fmt(d.monthly_payment||0)}/mo${mos?` · ~${mos} months to go`:''}</div><div class="prog"><div class="pf ${pct>60?'':'w'}" style="width:${pct}%"></div></div></div>`;}).join(''):'<div style="font-size:12px;color:var(--tx2)">No debts logged yet.</div>';const sc=document.getElementById('snowball');if(DEBTS.length>1){sc.style.display='block';const s=[...DEBTS].sort((a,b)=>a.owed-b.owed);document.getElementById('sbc').innerHTML=s.map((d,i)=>`<div class="irow"><span style="font-weight:700;color:var(--tx)">${i+1}. ${d.name}</span><span style="color:var(--am)">${fmt(d.owed)}</span></div>`).join('');}else sc.style.display='none';}
+async function addDebt(){const nm=(document.getElementById('d-nm').value||'').trim(),ow=parseFloat(document.getElementById('d-ow').value)||0,py=parseFloat(document.getElementById('d-py').value)||0,int=parseFloat(document.getElementById('d-in').value)||0;if(!nm||ow<=0)return;sync('sy');const{data,error}=await sb.from('debts').insert({user_id:USER.id,name:nm,owed:ow,monthly_payment:py,interest_rate:int}).select().single();if(!error){DEBTS.push(data);sync('ok');refreshDebts();}else sync('er');['d-nm','d-ow','d-py','d-in'].forEach(id=>document.getElementById(id).value='');}
+async function removeDebt(id){sync('sy');await sb.from('debts').delete().eq('id',id);DEBTS=DEBTS.filter(x=>x.id!==id);sync('ok');refreshDebts();}
+function refreshGoals(){if(!PROF)return;const g=G();document.getElementById('go-r').textContent=GOALS.length===0?g.gN(PROF.name):g.gS(PROF.name);document.getElementById('go-s').textContent=`Dreams are just goals that haven't been funded yet, ${g.bro}.`;document.getElementById('go-ll').innerHTML=GOALS.length?GOALS.map(gol=>{const pct=gol.target_amount>0?Math.min(100,Math.round(gol.saved_amount/gol.target_amount*100)):0,mos=gol.monthly_saving>0&&gol.target_amount>gol.saved_amount?Math.ceil((gol.target_amount-gol.saved_amount)/gol.monthly_saving):null;return`<div style="margin-bottom:12px"><div class="irow" style="border:none;padding-bottom:2px"><span style="font-weight:700;color:var(--tx)">${gol.name}</span><div style="display:flex;align-items:center;gap:6px"><span style="color:var(--tx2);font-size:12px">${fmt(gol.saved_amount)} / ${fmt(gol.target_amount)}</span><button type="button" onclick="removeGoal('${gol.id}')" style="background:none;border:none;color:var(--tx3);font-size:16px;cursor:pointer;padding:2px 5px">×</button></div></div><div style="font-size:11px;color:var(--tx2);margin-bottom:2px">${pct}% funded${mos?` · ~${mos} months at this pace`:''}</div><div class="prog"><div class="pf ${pct>70?'':pct>30?'w':'d'}" style="width:${pct}%"></div></div></div>`;}).join(''):'<div style="font-size:12px;color:var(--tx2)">No goals yet.</div>';}
+async function addGoal(){const nm=(document.getElementById('g-nm').value||'').trim(),tg=parseFloat(document.getElementById('g-tg').value)||0,sv=parseFloat(document.getElementById('g-sv').value)||0,mo=parseFloat(document.getElementById('g-mo').value)||0;if(!nm||tg<=0)return;sync('sy');const{data,error}=await sb.from('goals').insert({user_id:USER.id,name:nm,target_amount:tg,saved_amount:sv,monthly_saving:mo}).select().single();if(!error){GOALS.push(data);sync('ok');refreshGoals();}else sync('er');['g-nm','g-tg','g-sv','g-mo'].forEach(id=>document.getElementById(id).value='');}
+async function removeGoal(id){sync('sy');await sb.from('goals').delete().eq('id',id);GOALS=GOALS.filter(x=>x.id!==id);sync('ok');refreshGoals();}
+function loadPEdit(){if(!PROF)return;document.getElementById('p-nm').value=PROF.name||'';document.getElementById('p-cur').value=PROF.currency||'PHP';document.getElementById('p-lf').value=PROF.lifestyle||'other';document.getElementById('p-wk').value=PROF.work_hours||8;document.getElementById('p-sl').value=PROF.sleep_hours||7;document.getElementById('p-pe').value=PROF.personal_hours||2;pG=PROF.gender||'male';['m','f','o'].forEach(x=>{const e=document.getElementById('pb'+x);if(e)e.className='gb';});const e=document.getElementById('pb'+(pG[0]));if(e)e.className='gb '+(pG==='male'?'gm':pG==='female'?'gf':'go');setTimeout(upPBar,30);renderPalPicker();}
+async function saveProfile(){const nm=(document.getElementById('p-nm').value||'').trim(),err=document.getElementById('p-err');if(!nm){err.style.display='block';return;}err.style.display='none';sync('sy');const u={name:nm,gender:pG,currency:document.getElementById('p-cur').value,lifestyle:document.getElementById('p-lf').value,work_hours:parseFloat(document.getElementById('p-wk').value)||8,sleep_hours:parseFloat(document.getElementById('p-sl').value)||7,personal_hours:parseFloat(document.getElementById('p-pe').value)||2};const{data,error}=await sb.from('profiles').update(u).eq('id',USER.id).select().single();if(!error){PROF=data;sync('ok');goP('pg-main');}else sync('er');}
+async function boot(){const{data:{session}}=await sb.auth.getSession();if(session){USER=session.user;await loadAll();document.getElementById('loading').style.display='none';document.getElementById('app').style.display='block';if(!PROF||!PROF.name){goP('pg-onboard');}else{goP('pg-main');}}else{document.getElementById('loading').style.display='none';document.getElementById('auth-pg').style.display='flex';}sb.auth.onAuthStateChange(async(event,session)=>{if(event==='SIGNED_IN'&&session){USER=session.user;await loadAll();document.getElementById('auth-pg').style.display='none';document.getElementById('app').style.display='block';if(!PROF||!PROF.name){goP('pg-onboard');}else{goP('pg-main');}}});}
+document.getElementById('os1-btn').addEventListener('click',()=>{const nm=(document.getElementById('ob-nm')?.value||'').trim(),err=document.getElementById('ob-nm-err');if(!nm){err.style.display='block';document.getElementById('ob-nm').focus();return;}err.style.display='none';goObStep(2);upObBar();});
+document.getElementById('os2-bk').addEventListener('click',()=>goObStep(1));
+document.getElementById('os2-btn').addEventListener('click',()=>{const w=parseFloat(document.getElementById('ob-wk')?.value)||0,sl=parseFloat(document.getElementById('ob-sl')?.value)||0,p=parseFloat(document.getElementById('ob-pe')?.value)||0,fr=Math.max(0,24-w-sl-p),g=GEN[obG]||GEN.male,nm=(document.getElementById('ob-nm')?.value||'').trim();document.getElementById('wc-h').textContent=`Welcome, ${nm}!`;document.getElementById('wc-s').textContent=`${g.bro.charAt(0).toUpperCase()+g.bro.slice(1)}, you've got ${fr.toFixed(1)}h free daily.`;renderBar(w,sl,p,0,'ob-bar2');document.getElementById('ob-bar2-tx').textContent=`Work ${w}h · Sleep ${sl}h · Personal ${p}h · Free ~${fr.toFixed(1)}h`;goObStep(3);});
+document.getElementById('os3-btn').addEventListener('click',finishOnboard);
+document.getElementById('aib').addEventListener('click',addIng);
+document.getElementById('ii').addEventListener('keydown',e=>{if(e.key==='Enter')addIng();});
+document.getElementById('smb').addEventListener('click',()=>goP('pg-meals'));
+document.getElementById('ai-btn').addEventListener('click',addIncome);
+document.getElementById('ae-btn').addEventListener('click',addExpense);
+document.getElementById('ad-btn').addEventListener('click',addDebt);
+document.getElementById('ag-btn').addEventListener('click',addGoal);
+document.getElementById('sp-btn').addEventListener('click',saveProfile);
+document.getElementById('ob-wk').addEventListener('input',upObBar);
+document.getElementById('ob-sl').addEventListener('input',upObBar);
+document.getElementById('ob-pe').addEventListener('input',upObBar);
+document.getElementById('p-wk').addEventListener('input',upPBar);
+document.getElementById('p-sl').addEventListener('input',upPBar);
+document.getElementById('p-pe').addEventListener('input',upPBar);
+boot();
+</script>
+</body>
+</html>
